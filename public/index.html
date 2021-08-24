@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+    />
+    <title>Covid Impact</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <script src="https://d3js.org/d3.v7.min.js" defer></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj"
+      crossorigin="anonymous"
+      defer
+    ></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="cd-vertical-nav">
+      <ul>
+        <li>
+          <a href="#section1">
+            <span class="cd-dot"></span>
+            <span class="cd-label">Home</span>
+          </a>
+        </li>
+        <li>
+          <a href="#section2">
+            <span class="cd-dot"></span>
+            <span class="cd-label">Introduction</span>
+          </a>
+        </li>
+        <li>
+          <a href="#section3">
+            <span class="cd-dot"></span>
+            <span class="cd-label">Animal Adoption</span>
+          </a>
+        </li>
+        <li>
+          <a href="#section4">
+            <span class="cd-dot"></span>
+            <span class="cd-label">CO2</span>
+          </a>
+        </li>
+        <li>
+          <a href="#section5">
+            <span class="cd-dot"></span>
+            <span class="cd-label">Rent</span>
+          </a>
+        </li>
+        <li>
+          <a href="#section6">
+            <span class="cd-dot"></span>
+            <span class="cd-label">Food Delivery</span>
+          </a>
+        </li>
+        <li>
+          <a href="#section7">
+            <span class="cd-dot"></span>
+            <span class="cd-label">Stock</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!--animal-->
+    <div class="section nav-section" data-aos="fade-in" id="section5">
+      <div class="line" style="margin: 150px 30vw 150px 30vw"></div>
+      <div style="height: 80px"></div>
+      <div class="row align-items-center">
+        <div class="col-md-9" id="scatter" style="padding-left: 0px !important">
+          <svg width="800" height="800"></svg>
+        </div>
+        <div class="col-md-3">
+          <p>animal adoption</p>
+          <div
+            class="btn-group btn-group-toggle"
+            data-toggle="buttons"
+            id="year-type"
+          >
+            <label class="btn btn-light">
+              <input
+                type="radio"
+                name="scatter"
+                autocomplete="off"
+                value="2011"
+              />Year 2017
+            </label>
+            <label class="btn btn-light">
+              <input
+                type="radio"
+                name="scatter"
+                autocomplete="off"
+                value="2013"
+              />Year 2018
+            </label>
+            <label class="btn btn-light">
+              <input
+                type="radio"
+                name="scatter"
+                autocomplete="off"
+                value="2014"
+              />Year 2019
+            </label>
+            <label class="btn btn-light">
+              <input
+                type="radio"
+                name="scatter"
+                autocomplete="off"
+                value="2015"
+              />Year 2020
+            </label>
+          </div>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Qui dicta
+            minus molestiae vel beatae natus eveniet ratione temporibus aperiam
+            harum alias officiis assumenda officia quibusdam deleniti eos
+            cupiditate dolore doloribus!
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
