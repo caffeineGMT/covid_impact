@@ -3,21 +3,21 @@ import React from "react";
 
 const width = 800;
 const height = 800;
+const animalDataPath = "./data/national_shelter_count_2020.csv";
 
-async function parse() {
-  const raw = await d3.csv("./data/national_shelter_count_2020.csv");
-  const process = (raw) => {
-    raw = raw.map((d) => {
-      return {
-        DateTime: new Date(d.DateTime),
-        LiveOutcome: +d.LiveOutcome,
-      };
-    });
-    return raw;
-  };
-  const data = process(raw);
-  return data;
+async function fetch(path) {
+  const data = await d3.csv(path);
+  return parse(data);
 }
+
+const parse = (data) => {
+  return data.map((d) => {
+    return {
+      DateTime: new Date(d.DateTime),
+      LiveOutcome: +d.LiveOutcome,
+    };
+  });
+};
 
 const render = (data, svg) => {
   const title = "puppy";
@@ -99,9 +99,9 @@ export default function Animal() {
   const svg = d3.select(svgRef.current);
   svg.selectAll("*").remove();
   React.useEffect(() => {
-    parse().then((data) => {
+    fetch(animalDataPath).then((data) => {
       render(data, svg);
-      console.log(svgRef);
+      console.log(svg);
     });
   });
   return (
