@@ -3,6 +3,7 @@ import React from "react";
 
 const width = 800;
 const height = 800;
+const margin = { top: 60, right: 40, bottom: 88, left: 105 };
 const animalDataPath = "./data/national_shelter_count_2020.csv";
 
 async function fetch(path) {
@@ -19,7 +20,7 @@ const parse = (data) => {
   });
 };
 
-const render = (data, svg) => {
+const draw = (data, svg) => {
   const title = "puppy";
 
   // accessor
@@ -31,7 +32,6 @@ const render = (data, svg) => {
   const yAxisLabel = "Live Outcome";
 
   // style
-  const margin = { top: 60, right: 40, bottom: 88, left: 105 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
@@ -98,39 +98,46 @@ export default function Animal() {
   const svgRef = React.useRef(null);
   const svg = d3.select(svgRef.current);
   svg.selectAll("*").remove();
+  const [data, setData] = React.useState(null);
   React.useEffect(() => {
     fetch(animalDataPath).then((data) => {
-      render(data, svg);
-      console.log(svg);
+      draw(data, svg);
+      setData(data);
     });
-  });
+  }, []);
+
+  if (!data) {
+    return <pre>Loading...</pre>;
+  }
+
   return (
     <div className="section nav-section">
       <div className="row align-items-center">
-        <div className="col-md-9">
+        <div className="col-md-8">
           <svg ref={svgRef} width="800" height="800"></svg>
         </div>
-        <div className="col-md-3">
-          <p>Animal Adoption Change</p>
-          <div className="btn-group btn-group-toggle">
-            <label className="btn btn-light">
+        <div className="col-md-4">
+          <h5 className="font-weight-bold">Animal Adoption Change</h5>
+          <div className="btn-group btn-group-sm btn-group-toggle d-flex">
+            <label className="btn btn-outline-light">
               <input type="radio" /> Year 2017
             </label>
-            <label className="btn btn-light">
+            <label className="btn btn-outline-light">
               <input type="radio" /> Year 2018
             </label>
-            <label className="btn btn-light">
+            <label className="btn btn-outline-light">
               <input type="radio" /> Year 2019
             </label>
-            <label className="btn btn-light">
+            <label className="btn btn-outline-light">
               <input type="radio" /> Year 2020
             </label>
           </div>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Qui dicta
-            minus molestiae vel beatae natus eveniet ratione temporibus aperiam
-            harum alias officiis assumenda officia quibusdam deleniti eos
-            cupiditate dolore doloribus!
+          <p className="text-justify mt-2">
+            Shelter Animals Count, which runs a database that tracks shelter and
+            rescue activity, looked at pet adoptions during the pandemic. The
+            group, which tracks about 500 rescue organizations across the
+            country, recorded 26,000 more pet adoptions in 2020 than in the year
+            before — a rise of about 15 percent.
           </p>
         </div>
       </div>
