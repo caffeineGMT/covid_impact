@@ -5,64 +5,39 @@ import fetchAndParse from "../utils/FetchAndParse.js";
 export default class Animal extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      year: 2020,
+      animalDataPath: `./data/national_shelter_count_2020.csv`,
+    };
 
     this.svgRef = React.createRef();
     this.width = 800;
     this.height = 400;
     this.margin = { top: 60, right: 40, bottom: 88, left: 105 };
-    this.animalDataPath = "./data/national_shelter_count_2020.csv";
   }
 
-  componentDidMount() {
+  componentDidMount = () => {
+    this.updateSVG();
+  };
+
+  handleYearChange = (year) => {
+    this.setState(
+      { year, animalDataPath: `./data/national_shelter_count_${year}.csv` },
+      this.updateSVG
+    );
+  };
+
+  updateSVG = () => {
     const svg = d3.select(this.svgRef.current);
 
     svg.selectAll("*").remove();
-    fetchAndParse(this.animalDataPath, this.parseAnimalData).then((data) => {
-      this.draw(data, svg);
-    });
     svg.attr("width", this.width).attr("height", this.height);
-  }
-
-  render() {
-    return (
-      <div className="animal section nav-section">
-        <div className="row align-items-center">
-          <div className="col-md-8">
-            <svg
-              ref={this.svgRef}
-              // width={console.log(this.width)}
-              // height="745"
-            ></svg>
-          </div>
-          <div className="col-md-4">
-            <h5 className="font-weight-bold">Animal Adoption Change</h5>
-            <div className="btn-group btn-group-sm btn-group-toggle d-flex">
-              <label className="btn btn-outline-light">
-                <input type="radio" /> Year 2017
-              </label>
-              <label className="btn btn-outline-light">
-                <input type="radio" /> Year 2018
-              </label>
-              <label className="btn btn-outline-light">
-                <input type="radio" /> Year 2019
-              </label>
-              <label className="btn btn-outline-light">
-                <input type="radio" /> Year 2020
-              </label>
-            </div>
-            <p className="text-justify mt-2">
-              Shelter Animals Count, which runs a database that tracks shelter
-              and rescue activity, looked at pet adoptions during the pandemic.
-              The group, which tracks about 500 rescue organizations across the
-              country, recorded 26,000 more pet adoptions in 2020 than in the
-              year before — a rise of about 15 percent.
-            </p>
-          </div>
-        </div>
-      </div>
+    fetchAndParse(this.state.animalDataPath, this.parseAnimalData).then(
+      (data) => {
+        this.drawSVG(data, svg);
+      }
     );
-  }
+  };
 
   parseAnimalData = (data) => {
     return data.map((d) => {
@@ -73,7 +48,7 @@ export default class Animal extends React.Component {
     });
   };
 
-  draw = (data, svg) => {
+  drawSVG = (data, svg) => {
     // accessor
     const xValue = (d) => d.DateTime;
     const xAxisLabel = "Time";
@@ -143,4 +118,69 @@ export default class Animal extends React.Component {
 
     g.append("path").attr("class", "line-path").attr("d", lineGenerator(data));
   };
+
+  render() {
+    return (
+      <div className="animal section nav-section">
+        <div className="row align-items-center">
+          <div className="col-md-8">
+            <svg ref={this.svgRef}></svg>
+          </div>
+          <div className="col-md-4">
+            <h5 className="font-weight-bold">Animal Adoption Change</h5>
+            <div className="btn-group btn-group-sm btn-group-toggle d-flex">
+              {/* <label className="btn btn-outline-light">
+                <input type="radio" /> Year 2017
+              </label>
+              <label className="btn btn-outline-light">
+                <input type="radio" /> Year 2018
+              </label>
+              <label className="btn btn-outline-light">
+                <input type="radio" /> Year 2019
+              </label>
+              <label className="btn btn-outline-light">
+                <input type="radio" /> Year 2020
+              </label> */}
+
+              <button
+                type="button"
+                className="btn btn-outline-light"
+                onClick={() => this.handleYearChange(2017)}
+              >
+                Year 2017
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline-light"
+                onClick={() => this.handleYearChange(2018)}
+              >
+                Year 2018
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline-light"
+                onClick={() => this.handleYearChange(2019)}
+              >
+                Year 2019
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline-light"
+                onClick={() => this.handleYearChange(2020)}
+              >
+                Year 2020
+              </button>
+            </div>
+            <p className="text-justify mt-2">
+              Shelter Animals Count, which runs a database that tracks shelter
+              and rescue activity, looked at pet adoptions during the pandemic.
+              The group, which tracks about 500 rescue organizations across the
+              country, recorded 26,000 more pet adoptions in 2020 than in the
+              year before — a rise of about 15 percent.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
