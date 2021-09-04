@@ -7,66 +7,79 @@ export default class Animal extends React.Component {
     super(props);
     this.state = {
       year: 2020,
-      animalDataPath: `./data/national_shelter_count_2020.csv`,
+      dataPath: `./data/national_shelter_count_all.csv`,
+      data: [],
     };
 
     this.svgRef = React.createRef();
     this.width = 800;
     this.height = 400;
     this.margin = { top: 60, right: 40, bottom: 88, left: 105 };
+    this.line = null;
+    this.lineGenerator = null;
   }
 
   componentDidMount = () => {
-    this.updateSVG();
-  };
-
-  handleYearChange = (year) => {
-    this.setState(
-      { year, animalDataPath: `./data/national_shelter_count_${year}.csv` },
-      this.updateSVG
-    );
-  };
-
-  updateSVG = () => {
     const svg = d3.select(this.svgRef.current);
-
     svg.selectAll("*").remove();
     svg.attr("width", this.width).attr("height", this.height);
-    fetchAndParse(this.state.animalDataPath, this.parseAnimalData).then(
-      (data) => {
-        this.drawSVG(data, svg);
-      }
-    );
+
+    fetchAndParse(this.state.dataPath, this.parseData).then((data) => {
+      this.setState({ data });
+      const filteredData = data.filter((d) => d.Year === 2020);
+      this.drawSVG(filteredData, svg);
+    });
   };
 
-  parseAnimalData = (data) => {
+  parseData = (data) => {
     return data.map((d) => {
       return {
-        DateTime: new Date(d.DateTime),
+        Year: +d.Year,
+        Month: d.Month,
         LiveOutcome: +d.LiveOutcome,
       };
     });
   };
 
+  handleYearChange = (year) => {
+    if (!year) {
+      console.log("this is all");
+      return;
+    }
+    const filteredData = this.state.data.filter((d) => d.Year === year);
+    console.log(filteredData);
+    this.updateSVG(filteredData);
+  };
+
+  updateSVG = (data) => {
+    this.line.transition().duration(1000).attr("d", this.lineGenerator(data));
+  };
+
   drawSVG = (data, svg) => {
     // accessor
-    const xValue = (d) => d.DateTime;
+    const xValue = (d) => d.Month;
     const xAxisLabel = "Time";
 
     const yValue = (d) => d.LiveOutcome;
     const circleRadius = 6;
-    const yAxisLabel = "Live Outcome";
+    const yAxisLabel = "Adoption";
 
-    // style
+    // frame
     const innerWidth = this.width - this.margin.left - this.margin.right;
     const innerHeight = this.height - this.margin.top - this.margin.bottom;
 
     // x-scale and y-scale
+    const months = this.state.data.map((d) => d.Month);
     const xScale = d3
-      .scaleTime()
-      .domain(d3.extent(data, xValue))
-      .range([0, innerWidth])
-      .nice();
+      .scaleOrdinal()
+      .domain(months)
+      .range(
+        (() => {
+          let arr = [];
+          for (let i = 0; i < 12; i++) arr.push(i * 60);
+          return arr;
+        })()
+      );
 
     const yScale = d3
       .scaleLinear()
@@ -116,7 +129,13 @@ export default class Animal extends React.Component {
       .y((d) => yScale(yValue(d)))
       .curve(d3.curveNatural);
 
-    g.append("path").attr("class", "line-path").attr("d", lineGenerator(data));
+    const line = g
+      .append("path")
+      .attr("class", "line-path")
+      .attr("d", lineGenerator(data));
+
+    this.line = line;
+    this.lineGenerator = lineGenerator;
   };
 
   render() {
@@ -129,19 +148,13 @@ export default class Animal extends React.Component {
           <div className="col-md-4">
             <h5 className="font-weight-bold">Animal Adoption Change</h5>
             <div className="btn-group btn-group-sm btn-group-toggle d-flex">
-              {/* <label className="btn btn-outline-light">
-                <input type="radio" /> Year 2017
-              </label>
-              <label className="btn btn-outline-light">
-                <input type="radio" /> Year 2018
-              </label>
-              <label className="btn btn-outline-light">
-                <input type="radio" /> Year 2019
-              </label>
-              <label className="btn btn-outline-light">
-                <input type="radio" /> Year 2020
-              </label> */}
-
+              <button
+                type="button"
+                className="btn btn-outline-light"
+                onClick={() => this.handleYearChange()}
+              >
+                All
+              </button>
               <button
                 type="button"
                 className="btn btn-outline-light"
@@ -172,12 +185,15 @@ export default class Animal extends React.Component {
               </button>
             </div>
             <p className="text-justify mt-2">
-              Shelter Animals Count, which runs a database that tracks shelter
-              and rescue activity, looked at pet adoptions during the pandemic.
-              The group, which tracks about 500 rescue organizations across the
-              country, recorded 26,000 more pet adoptions in 2020 than in the
-              year before — a rise of about 15 percent.
+              During the pandemic burst in 2020, we see more and more pets being
+              adopted. One would find it was very hard to adopt a pet from a
+              shelter. Was it truly having more adoptions? or was it just
+              because the available pets were adopted a lot faster than before
+              so that it created an illusion that more pets were adopted?
             </p>
+            <br />
+            <br />
+            <div className="text-center"> The answer is latter</div>
           </div>
         </div>
       </div>

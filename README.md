@@ -28,3 +28,11 @@ The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+## Reference
+
+- [Official D3 API docs](https://github.com/d3/d3/blob/main/API.md)
+- [Youtube Tutorial Video](https://www.youtube.com/watch?v=2LhoCfjm8R4)
+- Examples
+  - [D3 graph gallery](https://www.d3-graph-gallery.com/index.html)
+  - [Shirley Wu](https://shirleywu.studio/)
