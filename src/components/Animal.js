@@ -6,7 +6,6 @@ export default class Animal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      year: 2020,
       dataPath: `./data/national_shelter_count_all.csv`,
       data: [],
     };
@@ -44,10 +43,12 @@ export default class Animal extends React.Component {
   handleYearChange = (year) => {
     if (!year) {
       console.log("this is all");
+      // const sumStats = d3.group(this.state.data, (d) => d.Year);
+      // console.log(sumStats);
+      // this.updateSVG(sumStats);
       return;
     }
     const filteredData = this.state.data.filter((d) => d.Year === year);
-    console.log(filteredData);
     this.updateSVG(filteredData);
   };
 
@@ -58,11 +59,11 @@ export default class Animal extends React.Component {
   drawSVG = (data, svg) => {
     // accessor
     const xValue = (d) => d.Month;
-    const xAxisLabel = "Time";
+    const xAxisLabel = "Month";
 
     const yValue = (d) => d.LiveOutcome;
     const circleRadius = 6;
-    const yAxisLabel = "Adoption";
+    const yAxisLabel = "Adoption Count";
 
     // frame
     const innerWidth = this.width - this.margin.left - this.margin.right;
@@ -104,7 +105,7 @@ export default class Animal extends React.Component {
     xAisG.select(".domain").remove();
     xAisG
       .append("text")
-      .attr("class", "axis-label")
+      .attr("class", "bg-primary")
       .attr("y", 50)
       .attr("x", innerWidth / 2)
       .attr("fill", "white")
@@ -134,13 +135,14 @@ export default class Animal extends React.Component {
       .attr("class", "line-path")
       .attr("d", lineGenerator(data));
 
+    // hold a ref to these so that we only update line when new data kicks in
     this.line = line;
     this.lineGenerator = lineGenerator;
   };
 
   render() {
     return (
-      <div className="animal section nav-section">
+      <div className="animal container-fluid">
         <div className="row align-items-center">
           <div className="col-md-8">
             <svg ref={this.svgRef}></svg>

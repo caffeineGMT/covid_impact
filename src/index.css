@@ -19,7 +19,7 @@ html, body{
   opacity: 0.1;
 }
 
-div.section {
+.container-fluid {
   padding-left: 100px;
   padding-right: 100px;
 }
