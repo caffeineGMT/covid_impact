@@ -24,6 +24,14 @@ html, body{
   padding-right: 100px;
 }
 
+.section {
+  height: 900;
+  display: flex;
+  align-items: center;
+}
+
+
+
 /* Vertical Navigation Bar*/
 #cd-vertical-nav a {
   color: #ffffff;

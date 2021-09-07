@@ -142,9 +142,16 @@ export default class Animal extends React.Component {
 
   render() {
     return (
-      <div className="animal container-fluid">
-        <div className="row align-items-center">
-          <div className="col-md-8">
+      <div
+        className="animal container-fluid"
+        style={{
+          height: 900,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <div className="row">
+          <div className="col-md-7">
             <svg ref={this.svgRef}></svg>
           </div>
           <div className="col-md-4">
