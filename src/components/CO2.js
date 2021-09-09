@@ -5,50 +5,56 @@ export default class CO2 extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
+
+    this.canvasRef = React.createRef();
+    this.width = 1000;
+    this.height = 500;
+    this.context = null;
+
+    this.nodes = [];
+    this.strength = -0.25; // default repulsion
+    this.centeringStrength = 0.01; // power of centering force for two clusters
+    this.velocityDecay = 0.15; // velocity decay: higher value, less overshooting
+    this.outerRadius = 100; // new nodes within this radius
+    this.innerRadius = 100; // new nodes outside this radius, initial nodes within.
+    this.start = [this.width / 4, this.height / 2]; // new nodes/initial nodes center point
+    this.end = [this.width * (3 / 4), this.height / 2]; // destination center
+    this.n = 100; // number of initial nodes
+    this.cycles = 1000; // number of ticks before stopping.
+    this.tick = 0;
+    this.simulation = null;
   }
 
   componentDidMount = () => {
+    const canvas = d3.select(this.canvasRef.current);
+    canvas.attr("width", this.width).attr("height", this.height);
+    this.context = canvas.node().getContext("2d");
     this.draw();
   };
 
-  draw = () => {
-    const canvas = d3.select("canvas");
-    const width = +canvas.attr("width");
-    const height = +canvas.attr("height");
-    const context = canvas.node().getContext("2d");
+  // create a random node
+  random = () => {
+    const angle = Math.random() * Math.PI * 2;
+    const dis =
+      this.innerRadius + Math.random() * (this.outerRadius - this.innerRadius);
+    const x = Math.cos(angle) * dis + this.start[0];
+    const y = Math.cos(angle) * dis + this.start[1];
 
-    const nodes = [];
-    const strength = -0.25; // default repulsion
-    const centeringStrength = 0.01; // power of centering force for two clusters
-    const velocityDecay = 0.15; // velocity decay: higher value, less overshooting
-    const outerRadius = 250; // new nodes within this radius
-    const innerRadius = 100; // new nodes outside this radius, initial nodes within.
-    const startCenter = [250, 250]; // new nodes/initial nodes center point
-    const endCenter = [710, 250]; // destination center
-    const n = 200; // number of initial nodes
-    const cycles = 1000; // number of ticks before stopping.
-
-    // create a random node
-    const random = () => {
-      const angle = Math.random() * Math.PI * 2;
-      const dis = innerRadius + Math.random() * (outerRadius - innerRadius);
-      const x = Math.cos(angle) * dis + startCenter[0];
-      const y = Math.cos(angle) * dis + startCenter[1];
-
-      return {
-        x: x,
-        y: y,
-        strength: strength,
-        migrated: false,
-      };
+    return {
+      x: x,
+      y: y,
+      strength: this.strength,
+      migrated: false,
     };
+  };
 
-    // initial nodes:
-    for (let i = 0; i < n; i++) {
-      nodes.push(random());
+  draw = () => {
+    // initial nodes
+    for (let i = 0; i < this.n; i++) {
+      this.nodes.push(this.random());
     }
 
-    const simulation = d3
+    this.simulation = d3
       .forceSimulation()
       .force(
         "charge",
@@ -58,47 +64,45 @@ export default class CO2 extends React.Component {
         "x1",
         d3
           .forceX()
-          .x((d) => (d.migrated ? endCenter[0] : startCenter[0]))
-          .strength(centeringStrength)
+          .x((d) => (d.migrated ? this.end[0] : this.start[0]))
+          .strength(this.centeringStrength)
       )
       .force(
         "y1",
         d3
           .forceY()
-          .y((d) => (d.migrated ? endCenter[1] : startCenter[1]))
-          .strength(centeringStrength)
+          .y((d) => (d.migrated ? this.end[1] : this.start[1]))
+          .strength(this.centeringStrength)
       )
       .alphaDecay(0)
-      .velocityDecay(velocityDecay)
-      .nodes(nodes)
-      .on("tick", ticked);
+      .velocityDecay(this.velocityDecay)
+      .nodes(this.nodes)
+      .on("tick", this.ticked);
+  };
 
-    let tick = 0;
+  ticked = () => {
+    this.tick++;
 
-    const ticked = () => {
-      tick++;
+    if (this.tick > this.cycles) this.simulation.stop();
 
-      if (tick > cycles) this.stop();
+    this.nodes.push(this.random());
+    this.simulation.nodes(this.nodes);
 
-      nodes.push(random());
-      this.nodes(nodes);
+    const migrating = this.simulation.find(
+      (Math.random() - 0.5) * 50 + this.start[0],
+      (Math.random() - 0.5) * 50 + this.start[1],
+      10
+    );
+    if (migrating) migrating.migrated = true;
 
-      const migrating = simulation.find(
-        (Math.random() - 0.5) * 50 + startCenter[0],
-        (Math.random() - 0.5) * 50 + startCenter[1],
-        10
-      );
-      if (migrating) migrating.migrated = true;
+    this.context.clearRect(0, 0, this.width, this.height);
 
-      context.clearRect(0, 0, width.height);
-
-      nodes.forEach((d) => {
-        context.beginPath();
-        context.fillStyle = d.migrated ? "steelblue" : "orange";
-        context.arc(d.x, d.y, 3, 0, Math.PI * 2);
-        context.fill();
-      });
-    };
+    this.nodes.forEach((d) => {
+      this.context.beginPath();
+      this.context.fillStyle = d.migrated ? "steelblue" : "orange";
+      this.context.arc(d.x, d.y, 3, 0, Math.PI * 2);
+      this.context.fill();
+    });
   };
 
   render() {
@@ -111,7 +115,7 @@ export default class CO2 extends React.Component {
           alignItems: "center",
         }}
       >
-        <div className="row mx-auto" style={{ width: "50%" }}>
+        <div className="row mx-auto">
           <div className="col-md-12">
             <h4 className="text-center">CO2 change</h4>
             <p className="text-justify">
@@ -141,8 +145,8 @@ export default class CO2 extends React.Component {
               by more than one percentage point to over 20%.
             </p>
           </div>
+          <canvas ref={this.canvasRef}></canvas>
         </div>
-        {/* <canvas width="960" height="500"></canvas> */}
       </div>
     );
   }
