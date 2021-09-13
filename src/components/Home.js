@@ -10,7 +10,8 @@ export default class Home extends React.Component {
   render() {
     return (
       <div
-        className="co2 container-fluid"
+        className="home container-fluid"
+        id="home"
         style={{
           height: 900,
           display: "flex",

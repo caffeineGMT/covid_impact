@@ -1,3 +1,6 @@
+/*
+ref: https://bl.ocks.org/Andrew-Reid/aa5d4329d7e85075391e003c09c8283d 
+*/
 import React from "react";
 import * as d3 from "d3";
 
@@ -15,12 +18,12 @@ export default class CO2 extends React.Component {
     this.strength = -0.25; // default repulsion
     this.centeringStrength = 0.01; // power of centering force for two clusters
     this.velocityDecay = 0.15; // velocity decay: higher value, less overshooting
-    this.outerRadius = 100; // new nodes within this radius
+    this.outerRadius = 250; // new nodes within this radius
     this.innerRadius = 100; // new nodes outside this radius, initial nodes within.
     this.start = [this.width / 4, this.height / 2]; // new nodes/initial nodes center point
     this.end = [this.width * (3 / 4), this.height / 2]; // destination center
-    this.n = 100; // number of initial nodes
-    this.cycles = 1000; // number of ticks before stopping.
+    this.n = 500; // number of initial nodes
+    this.cycles = 100; // number of ticks before stopping.
     this.tick = 0;
     this.simulation = null;
   }
@@ -29,16 +32,16 @@ export default class CO2 extends React.Component {
     const canvas = d3.select(this.canvasRef.current);
     canvas.attr("width", this.width).attr("height", this.height);
     this.context = canvas.node().getContext("2d");
-    this.draw();
+    // this.draw();
   };
 
   // create a random node
   random = () => {
     const angle = Math.random() * Math.PI * 2;
     const dis =
-      this.innerRadius + Math.random() * (this.outerRadius - this.innerRadius);
+      Math.random() * (this.outerRadius - this.innerRadius) + this.innerRadius;
     const x = Math.cos(angle) * dis + this.start[0];
-    const y = Math.cos(angle) * dis + this.start[1];
+    const y = Math.sin(angle) * dis + this.start[1];
 
     return {
       x: x,
@@ -49,7 +52,12 @@ export default class CO2 extends React.Component {
   };
 
   draw = () => {
-    // initial nodes
+    if (this.simulation != null) {
+      this.simulation.stop();
+      this.simulation = null;
+    }
+    this.tick = 0;
+    this.nodes = [];
     for (let i = 0; i < this.n; i++) {
       this.nodes.push(this.random());
     }
@@ -61,14 +69,14 @@ export default class CO2 extends React.Component {
         d3.forceManyBody().strength((d) => d.strength)
       )
       .force(
-        "x1",
+        "x",
         d3
           .forceX()
           .x((d) => (d.migrated ? this.end[0] : this.start[0]))
           .strength(this.centeringStrength)
       )
       .force(
-        "y1",
+        "y",
         d3
           .forceY()
           .y((d) => (d.migrated ? this.end[1] : this.start[1]))
@@ -77,15 +85,26 @@ export default class CO2 extends React.Component {
       .alphaDecay(0)
       .velocityDecay(this.velocityDecay)
       .nodes(this.nodes)
-      .on("tick", this.ticked);
+      .on("tick", this.handleTick);
   };
 
-  ticked = () => {
+  handleTick = () => {
     this.tick++;
 
-    if (this.tick > this.cycles) this.simulation.stop();
+    if (this.tick > this.cycles) {
+      this.simulation.nodes(this.nodes);
+      this.context.clearRect(0, 0, this.width, this.height);
+      this.nodes.forEach((d) => {
+        this.context.beginPath();
+        this.context.fillStyle = d.migrated ? "steelblue" : "orange";
+        this.context.arc(d.x, d.y, 3, 0, Math.PI * 2);
+        this.context.fill();
+      });
+      // this.simulation.stop();
+      return;
+    }
 
-    this.nodes.push(this.random());
+    // this.nodes.push(this.random());
     this.simulation.nodes(this.nodes);
 
     const migrating = this.simulation.find(
@@ -97,6 +116,7 @@ export default class CO2 extends React.Component {
 
     this.context.clearRect(0, 0, this.width, this.height);
 
+    // draw individual dot
     this.nodes.forEach((d) => {
       this.context.beginPath();
       this.context.fillStyle = d.migrated ? "steelblue" : "orange";
@@ -105,10 +125,16 @@ export default class CO2 extends React.Component {
     });
   };
 
+  handleClick = () => {
+    console.log("clicked");
+    this.draw();
+  };
+
   render() {
     return (
       <div
         className="co2 container-fluid"
+        id="co2"
         style={{
           height: 900,
           display: "flex",
@@ -144,8 +170,17 @@ export default class CO2 extends React.Component {
               highest ever annual share of the global energy mix, increasing it
               by more than one percentage point to over 20%.
             </p>
+            <button
+              type="button"
+              className="btn btn-outline-light"
+              onClick={this.handleClick}
+            >
+              play / replay
+            </button>
           </div>
-          <canvas ref={this.canvasRef}></canvas>
+          <div className="col-md-12 align-items-center">
+            <canvas ref={this.canvasRef}></canvas>
+          </div>
         </div>
       </div>
     );
