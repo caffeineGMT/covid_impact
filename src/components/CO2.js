@@ -1,5 +1,7 @@
 /*
-ref: https://bl.ocks.org/Andrew-Reid/aa5d4329d7e85075391e003c09c8283d 
+ref: 
+https://bl.ocks.org/Andrew-Reid/aa5d4329d7e85075391e003c09c8283d 
+https://stackoverflow.com/questions/54344073/how-to-achieve-disc-shape-in-d3-force-simulation
 */
 import React from "react";
 import * as d3 from "d3";
@@ -52,16 +54,20 @@ export default class CO2 extends React.Component {
   };
 
   draw = () => {
+    // clean-up
     if (this.simulation != null) {
       this.simulation.stop();
       this.simulation = null;
     }
     this.tick = 0;
     this.nodes = [];
+
+    // init
     for (let i = 0; i < this.n; i++) {
       this.nodes.push(this.random());
     }
 
+    // create simulation
     this.simulation = d3
       .forceSimulation()
       .force(
@@ -89,34 +95,28 @@ export default class CO2 extends React.Component {
   };
 
   handleTick = () => {
-    this.tick++;
-
-    if (this.tick > this.cycles) {
-      this.simulation.nodes(this.nodes);
-      this.context.clearRect(0, 0, this.width, this.height);
-      this.nodes.forEach((d) => {
-        this.context.beginPath();
-        this.context.fillStyle = d.migrated ? "steelblue" : "orange";
-        this.context.arc(d.x, d.y, 3, 0, Math.PI * 2);
-        this.context.fill();
-      });
-      // this.simulation.stop();
+    // stop condition
+    if (this.tick > 300) {
+      this.simulation.stop();
+      this.simulation = null;
+      console.log("hit");
       return;
     }
 
-    // this.nodes.push(this.random());
+    // update tick and nodes
+    this.tick++;
     this.simulation.nodes(this.nodes);
+    if (this.tick <= this.cycles) {
+      const migrating = this.simulation.find(
+        (Math.random() - 0.5) * 50 + this.start[0],
+        (Math.random() - 0.5) * 50 + this.start[1],
+        10
+      );
+      if (migrating) migrating.migrated = true;
+    }
 
-    const migrating = this.simulation.find(
-      (Math.random() - 0.5) * 50 + this.start[0],
-      (Math.random() - 0.5) * 50 + this.start[1],
-      10
-    );
-    if (migrating) migrating.migrated = true;
-
+    // clear canvas and draw updated dot
     this.context.clearRect(0, 0, this.width, this.height);
-
-    // draw individual dot
     this.nodes.forEach((d) => {
       this.context.beginPath();
       this.context.fillStyle = d.migrated ? "steelblue" : "orange";
