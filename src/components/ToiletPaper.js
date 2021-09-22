@@ -23,7 +23,7 @@ export default class ToiletPaper extends React.Component {
           alignItems: "center",
         }}
       >
-        <div class="container"></div>
+        <div className="container"></div>
       </div>
     );
   }

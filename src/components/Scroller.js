@@ -1,118 +1,101 @@
 /**
  * ref: https://github.com/vlandham/scroll_demo/blob/gh-pages/js/scroller.js
- *
- * scroller - handles the details
- * of figuring out which section
- * the user is currently scrolled
- * to.
- *
+ * handles the details of figuring out which section the user is currently scrolled to
  */
-function scroller() {
-  var container = d3.select("body");
-  // event dispatcher
-  var dispatch = d3.dispatch("active", "progress");
-  // d3 selection of all the text sections that will be scrolled through
-  var sections = null;
-  // array that will hold the y coordinate of each section that is scrolled through
-  var sectionPositions = [];
-  var currentIndex = -1;
-  // y coordinate of
-  var containerStart = 0;
+import * as d3 from "d3";
 
+export default class Scroller {
   /**
-   * scroll - constructor function.
-   * Sets up scroller to monitor
-   * scrolling of els selection.
-   *
-   * @param els - d3 selection of
+   * Sets up scroller to monitor scrolling of els selection.
+   * @param elements - d3 selection of
    *  elements that will be scrolled
    *  through by user.
    */
-
-  function scroll(els) {
-    sections = els;
+  constructor(elements) {
+    this.container = d3.select("#sections");
+    // event dispatcher
+    this.dispatch = d3.dispatch("active", "progress");
+    // d3 selection of all the text sections that will be scrolled thru
+    this.sections = elements;
+    // array that will hold the y coordinate of each section that is scrolled through
+    this.sectionPositions = [];
+    this.currentIndex = -1;
+    // y coordinate of container start
+    this.containerStart = 0;
 
     // when window is scrolled call position. When it is resized call resize.
+    // .scroller namespace
     d3.select(window)
-      .on("scroll.scroller", position)
-      .on("resize.scroller", resize);
+      .on("scroll.scroller", this.position)
+      .on("resize.scroller", this.resize);
 
     // manually call resize initially to setup scroller.
-    resize();
+    this.resize();
 
     // hack to get position to be called once for the scroll position on load.
-    var timer = d3.timer(function () {
-      position();
-      timer.stop();
-    });
+    // let timer = d3.timer(function () {
+    //   this.position();
+    //   timer.stop();
+    // });
   }
 
   /**
-   * resize - called initially and
-   * also when page is resized.
+   * resize - called initially and also when page is resized.
    * Resets the sectionPositions
-   *
    */
-  function resize() {
-    // sectionPositions will be each sections
-    // starting position relative to the top
-    // of the first section.
-    sectionPositions = [];
-    var startPos;
-    sections.each(function (d, i) {
-      var top = this.getBoundingClientRect().top;
-      if (i === 0) {
-        startPos = top;
-      }
-      sectionPositions.push(top - startPos);
+  resize = () => {
+    // sectionPositions will be each sections starting position relative to the top of the first section.
+    this.sectionPositions = [];
+    let startPos;
+    this.sections.each((d, i, nodes) => {
+      let top = nodes[i].getBoundingClientRect().top;
+      if (i === 0) startPos = top;
+      this.sectionPositions.push(top - startPos);
     });
-    containerStart =
-      container.node().getBoundingClientRect().top + window.pageYOffset;
-  }
+    // container's relative pos to viewport + the absolute pos of viewport in document
+    this.containerStart =
+      this.container.node().getBoundingClientRect().top + window.scrollY;
+  };
 
   /**
    * position - get current users position.
    * if user has scrolled to new section,
    * dispatch active event with new section
    * index.
-   *
    */
-  function position() {
-    var pos = window.pageYOffset - 10 - containerStart;
-    var sectionIndex = d3.bisect(sectionPositions, pos);
-    sectionIndex = Math.min(sections.size() - 1, sectionIndex);
-
-    if (currentIndex !== sectionIndex) {
-      dispatch.call("active", this, sectionIndex);
-      currentIndex = sectionIndex;
+  position = () => {
+    let pos = window.scrollY - 10 - this.containerStart;
+    let sectionIndex = d3.bisect(this.sectionPositions, pos);
+    sectionIndex = Math.min(this.sections.size() - 1, sectionIndex);
+    console.log(sectionIndex);
+    if (this.currentIndex !== sectionIndex) {
+      this.dispatch.call("active", this, sectionIndex);
+      this.currentIndex = sectionIndex;
     }
-
-    var prevIndex = Math.max(sectionIndex - 1, 0);
-    var prevTop = sectionPositions[prevIndex];
-    var progress = (pos - prevTop) / (sectionPositions[sectionIndex] - prevTop);
-    dispatch.call("progress", this, currentIndex, progress);
-  }
+    let prevIndex = Math.max(sectionIndex - 1, 0);
+    let prevTop = this.sectionPositions[prevIndex];
+    let progress =
+      (pos - prevTop) / (this.sectionPositions[sectionIndex] - prevTop);
+    this.dispatch.call("progress", this, this.currentIndex, progress);
+  };
 
   /**
    * container - get/set the parent element
    * of the sections. Useful for if the
    * scrolling doesn't start at the very top
    * of the page.
-   *
    * @param value - the new container value
    */
-  scroll.container = function (value) {
+  container = function (value) {
     if (arguments.length === 0) {
-      return container;
+      return this.container;
     }
-    container = value;
-    return scroll;
+    this.container = value;
+    return this;
   };
 
   // implements a .on method to pass in a callback to the dispatcher.
-  scroll.on = function (action, callback) {
-    dispatch.on(action, callback);
+  on = (action, callback) => {
+    this.dispatch.on(action, callback);
   };
-
-  return scroll;
 }

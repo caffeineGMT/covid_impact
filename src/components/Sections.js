@@ -4,123 +4,82 @@
  * using reusable charts pattern:
  * http://bost.ocks.org/mike/chart/
  */
-var scrollVis = function () {
-  // constants to define the size
-  // and margins of the vis area.
-  var width = 600;
-  var height = 520;
-  var margin = { top: 0, left: 20, bottom: 40, right: 10 };
+import * as d3 from "d3";
 
-  // Keep track of which visualization
-  // we are on and which was the last
-  // index activated. When user scrolls
-  // quickly, we want to call all the
-  // activate functions that they pass.
-  var lastIndex = -1;
-  var activeIndex = 0;
+export default class Sections {
+  width = 600;
+  height = 520;
+  margin = { top: 0, left: 20, bottom: 40, right: 10 };
+  lastIndex = -1;
+  activeIndex = 0;
 
-  // Sizing for the grid visualization
-  var squareSize = 6;
-  var squarePad = 2;
-  var numPerRow = width / (squareSize + squarePad);
+  squareSize = 6;
+  squarePad = 2;
+  numPerRow = this.width / (this.squareSize + this.squarePad);
 
-  // main svg used for visualization
-  var svg = null;
+  svg = null;
+  g = null;
 
-  // d3 selection that will be used
-  // for displaying visualizations
-  var g = null;
+  constructor() {}
 
-  // We will set the domain when the
-  // data is processed.
-  // @v4 using new scale names
-  var xBarScale = d3.scaleLinear().range([0, width]);
+  scrollVis = () => {
+    this.xBarScale = d3.scaleLinear().range([0, this.width]);
+    this.yBarScale = d3
+      .scaleBand()
+      .paddingInner(0.08)
+      .domain([0, 1, 2])
+      .range([0, this.height - 50], 0.1, 0.1);
 
-  // The bar chart display is horizontal
-  // so we can use an ordinal scale
-  // to get width and y locations.
-  // @v4 using new scale type
-  var yBarScale = d3
-    .scaleBand()
-    .paddingInner(0.08)
-    .domain([0, 1, 2])
-    .range([0, height - 50], 0.1, 0.1);
+    this.barColors = { 0: "#008080", 1: "#399785", 2: "#5AAF8C" };
+    this.xHistScale = d3
+      .scaleLinear()
+      .domain([0, 30])
+      .range([0, this.width - 20]);
+    this.yHistScale = d3.scaleLinear().range([this.height, 0]);
 
-  // Color is determined just by the index of the bars
-  var barColors = { 0: "#008080", 1: "#399785", 2: "#5AAF8C" };
+    this.coughColorScale = d3
+      .scaleLinear()
+      .domain([0, 1.0])
+      .range(["#008080", "red"]);
 
-  // The histogram display shows the
-  // first 30 minutes of data
-  // so the range goes from 0 to 30
-  // @v4 using new scale name
-  var xHistScale = d3
-    .scaleLinear()
-    .domain([0, 30])
-    .range([0, width - 20]);
+    this.xAxisBar = d3.axisBottom().scale(this.xBarScale);
+    this.xAxisHist = d3
+      .axisBottom()
+      .scale(this.xHistScale)
+      .tickFormat(function (d) {
+        return d + " min";
+      });
 
-  // @v4 using new scale name
-  var yHistScale = d3.scaleLinear().range([height, 0]);
-
-  // The color translation uses this
-  // scale to convert the progress
-  // through the section into a
-  // color value.
-  // @v4 using new scale name
-  var coughColorScale = d3
-    .scaleLinear()
-    .domain([0, 1.0])
-    .range(["#008080", "red"]);
-
-  // You could probably get fancy and
-  // use just one axis, modifying the
-  // scale, but I will use two separate
-  // ones to keep things easy.
-  // @v4 using new axis name
-  var xAxisBar = d3.axisBottom().scale(xBarScale);
-
-  // @v4 using new axis name
-  var xAxisHist = d3
-    .axisBottom()
-    .scale(xHistScale)
-    .tickFormat(function (d) {
-      return d + " min";
-    });
-
-  // When scrolling to a new section
-  // the activation function for that
-  // section is called.
-  var activateFunctions = [];
-  // If a section has an update function
-  // then it is called while scrolling
-  // through the section with the current
-  // progress through the section.
-  var updateFunctions = [];
+    this.activateFunctions = [];
+    this.updateFunctions = [];
+  };
 
   /**
-   * chart
-   *
    * @param selection - the current d3 selection(s)
    *  to draw the visualization in. For this
    *  example, we will be drawing it in #vis
    */
-  var chart = function (selection) {
+  chart = function (selection) {
     selection.each(function (rawData) {
       // create svg and give it a width and height
-      svg = d3.select(this).selectAll("svg").data([wordData]);
-      var svgE = svg.enter().append("svg");
+      this.svg = d3.select(this).selectAll("svg").data([wordData]);
+      var svgE = this.svg.enter().append("svg");
       // @v4 use merge to combine enter and existing selection
-      svg = svg.merge(svgE);
+      this.svg = this.svg.merge(svgE);
 
-      svg.attr("width", width + margin.left + margin.right);
-      svg.attr("height", height + margin.top + margin.bottom);
+      this.svg.attr("width", this.width + this.margin.left + this.margin.right);
+      this.svg.attr(
+        "height",
+        this.height + this.margin.top + this.margin.bottom
+      );
 
-      svg.append("g");
-
-      // this group element will be used to contain all
-      // other elements.
-      g = svg
+      this.svg.append("g");
+      this.g = this.svg
         .select("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        .attr(
+          "transform",
+          "translate(" + this.margin.left + "," + this.margin.top + ")"
+        );
 
       // perform some preprocessing on raw data
       var wordData = getWords(rawData);
@@ -134,7 +93,7 @@ var scrollVis = function () {
       var countMax = d3.max(fillerCounts, function (d) {
         return d.value;
       });
-      xBarScale.domain([0, countMax]);
+      this.xBarScale.domain([0, countMax]);
 
       // get aggregated histogram data
 
@@ -160,7 +119,7 @@ var scrollVis = function () {
    *  element for each filler word type.
    * @param histData - binned histogram data
    */
-  var setupVis = function (wordData, fillerCounts, histData) {
+  setupVis = function (wordData, fillerCounts, histData) {
     // axis
     g.append("g")
       .attr("class", "x axis")
@@ -307,32 +266,20 @@ var scrollVis = function () {
       .attr("opacity", 0);
   };
 
-  /**
-   * setupSections - each section is activated
-   * by a separate function. Here we associate
-   * these functions to the sections based on
-   * the section's index.
-   *
-   */
-  var setupSections = function () {
-    // activateFunctions are called each
-    // time the active section changes
-    activateFunctions[0] = showTitle;
-    activateFunctions[1] = showFillerTitle;
-    activateFunctions[2] = showGrid;
-    activateFunctions[3] = highlightGrid;
-    activateFunctions[4] = showBar;
-    activateFunctions[5] = showHistPart;
-    activateFunctions[6] = showHistAll;
-    activateFunctions[7] = showCough;
-    activateFunctions[8] = showHistAll;
+  setupSections = () => {
+    // activateFunctions are called each time the active section changes
+    activateFunctions[0] = this.showTitle;
+    activateFunctions[1] = this.showFillerTitle;
+    activateFunctions[2] = this.showGrid;
+    activateFunctions[3] = this.highlightGrid;
+    activateFunctions[4] = this.showBar;
+    activateFunctions[5] = this.showHistPart;
+    activateFunctions[6] = this.showHistAll;
+    activateFunctions[7] = this.showCough;
+    activateFunctions[8] = this.showHistAll;
 
-    // updateFunctions are called while
-    // in a particular section to update
-    // the scroll progress in that section.
-    // Most sections do not need to be updated
-    // for all scrolling and so are set to
-    // no-op functions.
+    // updateFunctions are called while in a particular section to update the scroll progress in that section.
+    // Most sections do not need to be updated for all scrolling and so are set to no-op functions.
     for (var i = 0; i < 9; i++) {
       updateFunctions[i] = function () {};
     }
@@ -362,14 +309,14 @@ var scrollVis = function () {
    * shows: intro title
    *
    */
-  function showTitle() {
+  showTitle = () => {
     g.selectAll(".count-title").transition().duration(0).attr("opacity", 0);
 
     g.selectAll(".openvis-title")
       .transition()
       .duration(600)
       .attr("opacity", 1.0);
-  }
+  };
 
   /**
    * showFillerTitle - filler counts
@@ -379,13 +326,13 @@ var scrollVis = function () {
    * shows: filler count title
    *
    */
-  function showFillerTitle() {
+  showFillerTitle = () => {
     g.selectAll(".openvis-title").transition().duration(0).attr("opacity", 0);
 
     g.selectAll(".square").transition().duration(0).attr("opacity", 0);
 
     g.selectAll(".count-title").transition().duration(600).attr("opacity", 1.0);
-  }
+  };
 
   /**
    * showGrid - square grid
@@ -395,7 +342,7 @@ var scrollVis = function () {
    * shows: square grid
    *
    */
-  function showGrid() {
+  showGrid = () => {
     g.selectAll(".count-title").transition().duration(0).attr("opacity", 0);
 
     g.selectAll(".square")
@@ -406,7 +353,7 @@ var scrollVis = function () {
       })
       .attr("opacity", 1.0)
       .attr("fill", "#ddd");
-  }
+  };
 
   /**
    * highlightGrid - show fillers in grid
@@ -416,7 +363,7 @@ var scrollVis = function () {
    *  filler words. also ensures squares
    *  are moved back to their place in the grid
    */
-  function highlightGrid() {
+  highlightGrid = () => {
     hideAxis();
     g.selectAll(".bar").transition().duration(600).attr("width", 0);
 
@@ -448,7 +395,7 @@ var scrollVis = function () {
       .attr("fill", function (d) {
         return d.filler ? "#008080" : "#ddd";
       });
-  }
+  };
 
   /**
    * showBar - barchart
@@ -458,7 +405,7 @@ var scrollVis = function () {
    * shows: barchart
    *
    */
-  function showBar() {
+  showBar = () => {
     // ensure bar axis is set
     showAxis(xAxisBar);
 
@@ -501,7 +448,7 @@ var scrollVis = function () {
       .duration(600)
       .delay(1200)
       .attr("opacity", 1);
-  }
+  };
 
   /**
    * showHistPart - shows the first part
@@ -512,7 +459,7 @@ var scrollVis = function () {
    * shows: first half of histogram
    *
    */
-  function showHistPart() {
+  showHistPart = () => {
     // switch the axis to histogram one
     showAxis(xAxisHist);
 
@@ -534,7 +481,7 @@ var scrollVis = function () {
       .style("opacity", function (d) {
         return d.x0 < 15 ? 1.0 : 1e-6;
       });
-  }
+  };
 
   /**
    * showHistAll - show all histogram
@@ -546,7 +493,7 @@ var scrollVis = function () {
    * shows: all histogram bars
    *
    */
-  function showHistAll() {
+  showHistAll = () => {
     // ensure the axis to histogram one
     showAxis(xAxisHist);
 
@@ -569,7 +516,7 @@ var scrollVis = function () {
         return height - yHistScale(d.length);
       })
       .style("opacity", 1.0);
-  }
+  };
 
   /**
    * showCough
@@ -580,7 +527,7 @@ var scrollVis = function () {
    * shows: histogram
    *
    */
-  function showCough() {
+  showCough = () => {
     // ensure the axis to histogram one
     showAxis(xAxisHist);
 
@@ -594,7 +541,7 @@ var scrollVis = function () {
         return height - yHistScale(d.length);
       })
       .style("opacity", 1.0);
-  }
+  };
 
   /**
    * showAxis - helper function to
@@ -603,22 +550,22 @@ var scrollVis = function () {
    * @param axis - the axis to show
    *  (xAxisHist or xAxisBar)
    */
-  function showAxis(axis) {
+  showAxis = (axis) => {
     g.select(".x.axis")
       .call(axis)
       .transition()
       .duration(500)
       .style("opacity", 1);
-  }
+  };
 
   /**
    * hideAxis - helper function
    * to hide the axis
    *
    */
-  function hideAxis() {
+  hideAxis = () => {
     g.select(".x.axis").transition().duration(500).style("opacity", 0);
-  }
+  };
 
   /**
    * UPDATE FUNCTIONS
@@ -639,7 +586,7 @@ var scrollVis = function () {
    * @param progress - 0.0 - 1.0 -
    *  how far user has scrolled in section
    */
-  function updateCough(progress) {
+  updateCough = (progress) => {
     g.selectAll(".cough").transition().duration(0).attr("opacity", progress);
 
     g.selectAll(".hist")
@@ -648,7 +595,7 @@ var scrollVis = function () {
       .style("fill", function (d) {
         return d.x0 >= 14 ? coughColorScale(progress) : "#008080";
       });
-  }
+  };
 
   /**
    * DATA FUNCTIONS
@@ -669,7 +616,7 @@ var scrollVis = function () {
    *
    * @param rawData - data read in from file
    */
-  function getWords(rawData) {
+  getWords = (rawData) => {
     return rawData.map(function (d, i) {
       // is this word a filler word?
       d.filler = d.filler === "1" ? true : false;
@@ -687,7 +634,7 @@ var scrollVis = function () {
       d.y = d.row * (squareSize + squarePad);
       return d;
     });
-  }
+  };
 
   /**
    * getFillerWords - returns array of
@@ -695,11 +642,11 @@ var scrollVis = function () {
    *
    * @param data - word data from getWords
    */
-  function getFillerWords(data) {
+  getFillerWords = (data) => {
     return data.filter(function (d) {
       return d.filler;
     });
-  }
+  };
 
   /**
    * getHistogram - use d3's histogram layout
@@ -708,7 +655,7 @@ var scrollVis = function () {
    * @param data - word data. we use filler words
    *  from getFillerWords
    */
-  function getHistogram(data) {
+  getHistogram = (data) => {
     // only get words from the first 30 minutes
     var thirtyMins = data.filter(function (d) {
       return d.min < 30;
@@ -726,7 +673,7 @@ var scrollVis = function () {
       .value(function (d) {
         return d.min;
       })(thirtyMins);
-  }
+  };
 
   /**
    * groupByWord - group words together
@@ -735,7 +682,7 @@ var scrollVis = function () {
    *
    * @param words
    */
-  function groupByWord(words) {
+  groupByWord = (words) => {
     return d3
       .nest()
       .key(function (d) {
@@ -748,14 +695,14 @@ var scrollVis = function () {
       .sort(function (a, b) {
         return b.value - a.value;
       });
-  }
+  };
 
   /**
    * activate -
    *
    * @param index - index of the activated section
    */
-  chart.activate = function (index) {
+  activate = (index) => {
     activeIndex = index;
     var sign = activeIndex - lastIndex < 0 ? -1 : 1;
     var scrolledSections = d3.range(lastIndex + sign, activeIndex + sign, sign);
@@ -771,13 +718,10 @@ var scrollVis = function () {
    * @param index
    * @param progress
    */
-  chart.update = function (index, progress) {
+  update = function (index, progress) {
     updateFunctions[index](progress);
   };
-
-  // return chart function
-  return chart;
-};
+}
 
 /**
  * display - called once data
@@ -814,6 +758,3 @@ function display(data) {
     plot.update(index, progress);
   });
 }
-
-// load data and display
-d3.tsv("data/words.tsv", display);
