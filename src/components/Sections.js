@@ -5,6 +5,8 @@
  * http://bost.ocks.org/mike/chart/
  */
 import * as d3 from "d3";
+import * as d3Collection from "d3-collection";
+import Scroller from "./Scroller";
 
 export default class Sections {
   width = 600;
@@ -20,7 +22,11 @@ export default class Sections {
   svg = null;
   g = null;
 
-  constructor() {}
+  constructor() {
+    d3.tsv("./data/words.tsv").then((data) => {
+      this.init(data);
+    });
+  }
 
   scrollVis = () => {
     this.xBarScale = d3.scaleLinear().range([0, this.width]);
@@ -29,8 +35,8 @@ export default class Sections {
       .paddingInner(0.08)
       .domain([0, 1, 2])
       .range([0, this.height - 50], 0.1, 0.1);
-
     this.barColors = { 0: "#008080", 1: "#399785", 2: "#5AAF8C" };
+
     this.xHistScale = d3
       .scaleLinear()
       .domain([0, 30])
@@ -60,53 +66,31 @@ export default class Sections {
    *  example, we will be drawing it in #vis
    */
   chart = function (selection) {
-    selection.each(function (rawData) {
-      // create svg and give it a width and height
-      this.svg = d3.select(this).selectAll("svg").data([wordData]);
-      var svgE = this.svg.enter().append("svg");
-      // @v4 use merge to combine enter and existing selection
-      this.svg = this.svg.merge(svgE);
-
-      this.svg.attr("width", this.width + this.margin.left + this.margin.right);
-      this.svg.attr(
-        "height",
-        this.height + this.margin.top + this.margin.bottom
-      );
-
-      this.svg.append("g");
-      this.g = this.svg
-        .select("g")
-        .attr(
-          "transform",
-          "translate(" + this.margin.left + "," + this.margin.top + ")"
-        );
-
-      // perform some preprocessing on raw data
-      var wordData = getWords(rawData);
-      // filter to just include filler words
-      var fillerWords = getFillerWords(wordData);
-
-      // get the counts of filler words for the
-      // bar chart display
-      var fillerCounts = groupByWord(fillerWords);
-      // set the bar scale's domain
-      var countMax = d3.max(fillerCounts, function (d) {
-        return d.value;
-      });
-      this.xBarScale.domain([0, countMax]);
-
-      // get aggregated histogram data
-
-      var histData = getHistogram(fillerWords);
-      // set histogram's domain
-      var histMax = d3.max(histData, function (d) {
-        return d.length;
-      });
-      yHistScale.domain([0, histMax]);
-
-      setupVis(wordData, fillerCounts, histData);
-
-      setupSections();
+    selection.each((d, i, nodes) => {
+      // var wordData = this.getWords(nodes[i]);
+      // console.log(wordData);
+      // this.svg = d3.select(nodes).selectAll("svg").data([wordData]);
+      // console.log(this.svg);
+      // var svgEntry = this.svg.enter().append("svg");
+      // this.svg = this.svg.merge(svgEntry);
+      // this.svg.attr("width", this.width + this.margin.left + this.margin.right);
+      // this.svg.attr(
+      //   "height",
+      //   this.height + this.margin.top + this.margin.bottom
+      // );
+      // this.svg.append("g");
+      // this.g = this.svg
+      //   .select("g")
+      //   .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
+      // var fillerWords = this.getFillerWords(wordData);
+      // var fillerCounts = this.groupByWord(fillerWords);
+      // var countMax = d3.max(fillerCounts, (d) => d.value);
+      // this.xBarScale.domain([0, countMax]);
+      // var histData = this.getHistogram(fillerWords);
+      // var histMax = d3.max(histData, (d) => d.length);
+      // this.yHistScale.domain([0, histMax]);
+      // this.setupVis(wordData, fillerCounts, histData);
+      // this.setupSections();
     });
   };
 
@@ -121,53 +105,58 @@ export default class Sections {
    */
   setupVis = function (wordData, fillerCounts, histData) {
     // axis
-    g.append("g")
+    this.g
+      .append("g")
       .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(xAxisBar);
-    g.select(".x.axis").style("opacity", 0);
+      .attr("transform", "translate(0," + this.height + ")")
+      .call(this.xAxisBar);
+    this.g.select(".x.axis").style("opacity", 0);
 
     // count openvis title
-    g.append("text")
+    this.g
+      .append("text")
       .attr("class", "title openvis-title")
-      .attr("x", width / 2)
-      .attr("y", height / 3)
+      .attr("x", this.width / 2)
+      .attr("y", this.height / 3)
       .text("2013");
 
-    g.append("text")
+    this.g
+      .append("text")
       .attr("class", "sub-title openvis-title")
-      .attr("x", width / 2)
-      .attr("y", height / 3 + height / 5)
+      .attr("x", this.width / 2)
+      .attr("y", this.height / 3 + this.height / 5)
       .text("OpenVis Conf");
 
-    g.selectAll(".openvis-title").attr("opacity", 0);
+    this.g.selectAll(".openvis-title").attr("opacity", 0);
 
     // count filler word count title
-    g.append("text")
+    this.g
+      .append("text")
       .attr("class", "title count-title highlight")
-      .attr("x", width / 2)
-      .attr("y", height / 3)
+      .attr("x", this.width / 2)
+      .attr("y", this.height / 3)
       .text("180");
 
-    g.append("text")
+    this.g
+      .append("text")
       .attr("class", "sub-title count-title")
-      .attr("x", width / 2)
-      .attr("y", height / 3 + height / 5)
+      .attr("x", this.width / 2)
+      .attr("y", this.height / 3 + this.height / 5)
       .text("Filler Words");
 
-    g.selectAll(".count-title").attr("opacity", 0);
+    this.g.selectAll(".count-title").attr("opacity", 0);
 
     // square grid
     // @v4 Using .merge here to ensure
     // new and old data have same attrs applied
-    var squares = g.selectAll(".square").data(wordData, function (d) {
+    var squares = this.g.selectAll(".square").data(wordData, function (d) {
       return d.word;
     });
     var squaresE = squares.enter().append("rect").classed("square", true);
     squares = squares
       .merge(squaresE)
-      .attr("width", squareSize)
-      .attr("height", squareSize)
+      .attr("width", this.squareSize)
+      .attr("height", this.squareSize)
       .attr("fill", "#fff")
       .classed("fill-square", function (d) {
         return d.filler;
@@ -183,21 +172,21 @@ export default class Sections {
     // barchart
     // @v4 Using .merge here to ensure
     // new and old data have same attrs applied
-    var bars = g.selectAll(".bar").data(fillerCounts);
+    var bars = this.g.selectAll(".bar").data(fillerCounts);
     var barsE = bars.enter().append("rect").attr("class", "bar");
     bars = bars
       .merge(barsE)
       .attr("x", 0)
       .attr("y", function (d, i) {
-        return yBarScale(i);
+        return this.yBarScale(i);
       })
       .attr("fill", function (d, i) {
-        return barColors[i];
+        return this.barColors[i];
       })
       .attr("width", 0)
-      .attr("height", yBarScale.bandwidth());
+      .attr("height", this.yBarScale.bandwidth());
 
-    var barText = g.selectAll(".bar-text").data(fillerCounts);
+    var barText = this.g.selectAll(".bar-text").data(fillerCounts);
     barText
       .enter()
       .append("text")
@@ -208,9 +197,9 @@ export default class Sections {
       .attr("x", 0)
       .attr("dx", 15)
       .attr("y", function (d, i) {
-        return yBarScale(i);
+        return this.yBarScale(i);
       })
-      .attr("dy", yBarScale.bandwidth() / 1.2)
+      .attr("dy", this.yBarScale.bandwidth() / 1.2)
       .style("font-size", "110px")
       .attr("fill", "white")
       .attr("opacity", 0);
@@ -218,33 +207,34 @@ export default class Sections {
     // histogram
     // @v4 Using .merge here to ensure
     // new and old data have same attrs applied
-    var hist = g.selectAll(".hist").data(histData);
+    var hist = this.g.selectAll(".hist").data(histData);
     var histE = hist.enter().append("rect").attr("class", "hist");
     hist = hist
       .merge(histE)
       .attr("x", function (d) {
-        return xHistScale(d.x0);
+        return this.xHistScale(d.x0);
       })
-      .attr("y", height)
+      .attr("y", this.height)
       .attr("height", 0)
       .attr(
         "width",
-        xHistScale(histData[0].x1) - xHistScale(histData[0].x0) - 1
+        this.xHistScale(histData[0].x1) - this.xHistScale(histData[0].x0) - 1
       )
-      .attr("fill", barColors[0])
+      .attr("fill", this.barColors[0])
       .attr("opacity", 0);
 
     // cough title
-    g.append("text")
+    this.g
+      .append("text")
       .attr("class", "sub-title cough cough-title")
-      .attr("x", width / 2)
+      .attr("x", this.width / 2)
       .attr("y", 60)
       .text("cough")
       .attr("opacity", 0);
 
     // arrowhead from
     // http://logogin.blogspot.com/2013/02/d3js-arrowhead-markers.html
-    svg
+    this.svg
       .append("defs")
       .append("marker")
       .attr("id", "arrowhead")
@@ -255,35 +245,16 @@ export default class Sections {
       .append("path")
       .attr("d", "M 0,0 V 4 L6,2 Z");
 
-    g.append("path")
+    this.g
+      .append("path")
       .attr("class", "cough cough-arrow")
       .attr("marker-end", "url(#arrowhead)")
       .attr("d", function () {
-        var line = "M " + (width / 2 - 10) + " " + 80;
+        var line = "M " + (this.width / 2 - 10) + " " + 80;
         line += " l 0 " + 230;
         return line;
       })
       .attr("opacity", 0);
-  };
-
-  setupSections = () => {
-    // activateFunctions are called each time the active section changes
-    activateFunctions[0] = this.showTitle;
-    activateFunctions[1] = this.showFillerTitle;
-    activateFunctions[2] = this.showGrid;
-    activateFunctions[3] = this.highlightGrid;
-    activateFunctions[4] = this.showBar;
-    activateFunctions[5] = this.showHistPart;
-    activateFunctions[6] = this.showHistAll;
-    activateFunctions[7] = this.showCough;
-    activateFunctions[8] = this.showHistAll;
-
-    // updateFunctions are called while in a particular section to update the scroll progress in that section.
-    // Most sections do not need to be updated for all scrolling and so are set to no-op functions.
-    for (var i = 0; i < 9; i++) {
-      updateFunctions[i] = function () {};
-    }
-    updateFunctions[7] = updateCough;
   };
 
   /**
@@ -310,9 +281,14 @@ export default class Sections {
    *
    */
   showTitle = () => {
-    g.selectAll(".count-title").transition().duration(0).attr("opacity", 0);
+    this.g
+      .selectAll(".count-title")
+      .transition()
+      .duration(0)
+      .attr("opacity", 0);
 
-    g.selectAll(".openvis-title")
+    this.g
+      .selectAll(".openvis-title")
       .transition()
       .duration(600)
       .attr("opacity", 1.0);
@@ -327,11 +303,19 @@ export default class Sections {
    *
    */
   showFillerTitle = () => {
-    g.selectAll(".openvis-title").transition().duration(0).attr("opacity", 0);
+    this.g
+      .selectAll(".openvis-title")
+      .transition()
+      .duration(0)
+      .attr("opacity", 0);
 
-    g.selectAll(".square").transition().duration(0).attr("opacity", 0);
+    this.g.selectAll(".square").transition().duration(0).attr("opacity", 0);
 
-    g.selectAll(".count-title").transition().duration(600).attr("opacity", 1.0);
+    this.g
+      .selectAll(".count-title")
+      .transition()
+      .duration(600)
+      .attr("opacity", 1.0);
   };
 
   /**
@@ -343,9 +327,14 @@ export default class Sections {
    *
    */
   showGrid = () => {
-    g.selectAll(".count-title").transition().duration(0).attr("opacity", 0);
+    this.g
+      .selectAll(".count-title")
+      .transition()
+      .duration(0)
+      .attr("opacity", 0);
 
-    g.selectAll(".square")
+    this.g
+      .selectAll(".square")
       .transition()
       .duration(600)
       .delay(function (d) {
@@ -364,12 +353,13 @@ export default class Sections {
    *  are moved back to their place in the grid
    */
   highlightGrid = () => {
-    hideAxis();
-    g.selectAll(".bar").transition().duration(600).attr("width", 0);
+    this.hideAxis();
+    this.g.selectAll(".bar").transition().duration(600).attr("width", 0);
 
-    g.selectAll(".bar-text").transition().duration(0).attr("opacity", 0);
+    this.g.selectAll(".bar-text").transition().duration(0).attr("opacity", 0);
 
-    g.selectAll(".square")
+    this.g
+      .selectAll(".square")
       .transition()
       .duration(0)
       .attr("opacity", 1.0)
@@ -378,7 +368,8 @@ export default class Sections {
     // use named transition to ensure
     // move happens even if other
     // transitions are interrupted.
-    g.selectAll(".fill-square")
+    this.g
+      .selectAll(".fill-square")
       .transition("move-fills")
       .duration(800)
       .attr("x", function (d) {
@@ -388,7 +379,8 @@ export default class Sections {
         return d.y;
       });
 
-    g.selectAll(".fill-square")
+    this.g
+      .selectAll(".fill-square")
       .transition()
       .duration(800)
       .attr("opacity", 1.0)
@@ -407,43 +399,47 @@ export default class Sections {
    */
   showBar = () => {
     // ensure bar axis is set
-    showAxis(xAxisBar);
+    this.showAxis(this.xAxisBar);
 
-    g.selectAll(".square").transition().duration(800).attr("opacity", 0);
+    this.g.selectAll(".square").transition().duration(800).attr("opacity", 0);
 
-    g.selectAll(".fill-square")
+    this.g
+      .selectAll(".fill-square")
       .transition()
       .duration(800)
       .attr("x", 0)
       .attr("y", function (d, i) {
-        return yBarScale(i % 3) + yBarScale.bandwidth() / 2;
+        return this.yBarScale(i % 3) + this.yBarScale.bandwidth() / 2;
       })
       .transition()
       .duration(0)
       .attr("opacity", 0);
 
-    g.selectAll(".hist")
+    this.g
+      .selectAll(".hist")
       .transition()
       .duration(600)
       .attr("height", function () {
         return 0;
       })
       .attr("y", function () {
-        return height;
+        return this.height;
       })
       .style("opacity", 0);
 
-    g.selectAll(".bar")
+    this.g
+      .selectAll(".bar")
       .transition()
       .delay(function (d, i) {
         return 300 * (i + 1);
       })
       .duration(600)
       .attr("width", function (d) {
-        return xBarScale(d.value);
+        return this.xBarScale(d.value);
       });
 
-    g.selectAll(".bar-text")
+    this.g
+      .selectAll(".bar-text")
       .transition()
       .duration(600)
       .delay(1200)
@@ -461,22 +457,23 @@ export default class Sections {
    */
   showHistPart = () => {
     // switch the axis to histogram one
-    showAxis(xAxisHist);
+    this.showAxis(this.xAxisHist);
 
-    g.selectAll(".bar-text").transition().duration(0).attr("opacity", 0);
+    this.g.selectAll(".bar-text").transition().duration(0).attr("opacity", 0);
 
-    g.selectAll(".bar").transition().duration(600).attr("width", 0);
+    this.g.selectAll(".bar").transition().duration(600).attr("width", 0);
 
     // here we only show a bar if
     // it is before the 15 minute mark
-    g.selectAll(".hist")
+    this.g
+      .selectAll(".hist")
       .transition()
       .duration(600)
       .attr("y", function (d) {
-        return d.x0 < 15 ? yHistScale(d.length) : height;
+        return d.x0 < 15 ? this.yHistScale(d.length) : this.height;
       })
       .attr("height", function (d) {
-        return d.x0 < 15 ? height - yHistScale(d.length) : 0;
+        return d.x0 < 15 ? this.height - this.yHistScale(d.length) : 0;
       })
       .style("opacity", function (d) {
         return d.x0 < 15 ? 1.0 : 1e-6;
@@ -495,25 +492,27 @@ export default class Sections {
    */
   showHistAll = () => {
     // ensure the axis to histogram one
-    showAxis(xAxisHist);
+    this.showAxis(this.xAxisHist);
 
-    g.selectAll(".cough").transition().duration(0).attr("opacity", 0);
+    this.g.selectAll(".cough").transition().duration(0).attr("opacity", 0);
 
     // named transition to ensure
     // color change is not clobbered
-    g.selectAll(".hist")
+    this.g
+      .selectAll(".hist")
       .transition("color")
       .duration(500)
       .style("fill", "#008080");
 
-    g.selectAll(".hist")
+    this.g
+      .selectAll(".hist")
       .transition()
       .duration(1200)
       .attr("y", function (d) {
-        return yHistScale(d.length);
+        return this.yHistScale(d.length);
       })
       .attr("height", function (d) {
-        return height - yHistScale(d.length);
+        return this.height - this.yHistScale(d.length);
       })
       .style("opacity", 1.0);
   };
@@ -529,16 +528,17 @@ export default class Sections {
    */
   showCough = () => {
     // ensure the axis to histogram one
-    showAxis(xAxisHist);
+    this.showAxis(this.xAxisHist);
 
-    g.selectAll(".hist")
+    this.g
+      .selectAll(".hist")
       .transition()
       .duration(600)
       .attr("y", function (d) {
-        return yHistScale(d.length);
+        return this.yHistScale(d.length);
       })
       .attr("height", function (d) {
-        return height - yHistScale(d.length);
+        return this.height - this.yHistScale(d.length);
       })
       .style("opacity", 1.0);
   };
@@ -551,7 +551,8 @@ export default class Sections {
    *  (xAxisHist or xAxisBar)
    */
   showAxis = (axis) => {
-    g.select(".x.axis")
+    this.g
+      .select(".x.axis")
       .call(axis)
       .transition()
       .duration(500)
@@ -564,7 +565,7 @@ export default class Sections {
    *
    */
   hideAxis = () => {
-    g.select(".x.axis").transition().duration(500).style("opacity", 0);
+    this.g.select(".x.axis").transition().duration(500).style("opacity", 0);
   };
 
   /**
@@ -587,79 +588,156 @@ export default class Sections {
    *  how far user has scrolled in section
    */
   updateCough = (progress) => {
-    g.selectAll(".cough").transition().duration(0).attr("opacity", progress);
+    this.g
+      .selectAll(".cough")
+      .transition()
+      .duration(0)
+      .attr("opacity", progress);
 
-    g.selectAll(".hist")
+    this.g
+      .selectAll(".hist")
       .transition("cough")
       .duration(0)
       .style("fill", function (d) {
-        return d.x0 >= 14 ? coughColorScale(progress) : "#008080";
+        return d.x0 >= 14 ? this.coughColorScale(progress) : "#008080";
       });
   };
 
-  /**
-   * DATA FUNCTIONS
-   *
-   * Used to coerce the data into the
-   * formats we need to visualize
-   *
-   */
+  //#region initialization
 
   /**
-   * getWords - maps raw data to
-   * array of data objects. There is
-   * one data object for each word in the speach
-   * data.
-   *
-   * This function converts some attributes into
-   * numbers and adds attributes used in the visualization
-   *
+   * activate current section's visualization
+   * @param curIndex - index of the activated section
+   */
+  activate = (curIndex) => {
+    this.activeIndex = curIndex;
+    const sign = this.activeIndex - this.lastIndex < 0 ? -1 : 1;
+    const scrolledSections = d3.range(
+      this.lastIndex + sign,
+      this.activeIndex + sign,
+      sign
+    );
+    scrolledSections.forEach((i) => {
+      this.activateFunctions[i]();
+    });
+    this.lastIndex = this.activeIndex;
+  };
+
+  /**
+   * update current section's visualization based on progress
+   * @param curIndex - index of the activated section
+   * @param progress - progress of the activated section
+   */
+  update = (curIndex, progress) => {
+    this.updateFunctions[curIndex](progress);
+  };
+
+  /**
+   * called once data has been loaded.
+   * sets up the scroller and displays the visualization.
+   * @param rawData - loaded tsv data
+   */
+  init = (rawData) => {
+    this.setupData(rawData);
+    this.setupBarChart();
+    this.setupHistogram();
+    this.setupScroller();
+    this.setupVis();
+    this.setupSections();
+  };
+
+  setupData = (rawData) => {
+    this.wordData = this.getWords(rawData);
+  };
+
+  setupBarChart = () => {
+    const fillerWords = this.getFillerWords(this.wordData);
+    const fillerCounts = this.groupByWord(fillerWords);
+    const countMax = d3.max(fillerCounts, (d) => d.value);
+    this.xBarScale.domain([0, countMax]);
+  };
+
+  setupHistogram = () => {
+    const fillerWords = this.getFillerWords(this.wordData);
+    const histData = this.getHistogram(fillerWords);
+    const histMax = d3.max(histData, (d) => d.length);
+    this.yHistScale.domain([0, histMax]);
+  };
+
+  setupScroller = () => {
+    const steps = d3.selectAll(".step");
+    const scroller = new Scroller(steps);
+    scroller.container("#graphic");
+
+    scroller.on("active", function (curIndex) {
+      d3.selectAll(".step").style("opacity", (d, i) => {
+        return i === curIndex ? 1 : 0.1;
+      });
+
+      this.activate(curIndex);
+    });
+
+    scroller.on("progress", (curIndex, progress) => {
+      this.update(curIndex, progress);
+    });
+  };
+
+  setupSections = () => {
+    this.activateFunctions[0] = this.showTitle;
+    this.activateFunctions[1] = this.showFillerTitle;
+    this.activateFunctions[2] = this.showGrid;
+    this.activateFunctions[3] = this.highlightGrid;
+    this.activateFunctions[4] = this.showBar;
+    this.activateFunctions[5] = this.showHistPart;
+    this.activateFunctions[6] = this.showHistAll;
+    this.activateFunctions[7] = this.showCough;
+    this.activateFunctions[8] = this.showHistAll;
+
+    for (var i = 0; i < 9; i++) {
+      this.updateFunctions[i] = function () {};
+    }
+    this.updateFunctions[7] = this.updateCough;
+  };
+
+  //#endregion initialization
+
+  //#region data func
+
+  /**
+   * maps raw data to array of data objects.
    * @param rawData - data read in from file
    */
   getWords = (rawData) => {
-    return rawData.map(function (d, i) {
-      // is this word a filler word?
+    return rawData.map((d, i) => {
+      // post-process each data
       d.filler = d.filler === "1" ? true : false;
-      // time in seconds word was spoken
       d.time = +d.time;
-      // time in minutes word was spoken
       d.min = Math.floor(d.time / 60);
 
-      // positioning for square visual
-      // stored here to make it easier
-      // to keep track of.
-      d.col = i % numPerRow;
-      d.x = d.col * (squareSize + squarePad);
-      d.row = Math.floor(i / numPerRow);
-      d.y = d.row * (squareSize + squarePad);
+      // position for each square
+      d.col = i % this.numPerRow;
+      d.row = Math.floor(i / this.numPerRow);
+      d.x = d.col * (this.squareSize + this.squarePad);
+      d.y = d.row * (this.squareSize + this.squarePad);
       return d;
     });
   };
 
   /**
-   * getFillerWords - returns array of
-   * only filler words
-   *
-   * @param data - word data from getWords
+   * returns array of only filler words
+   * @param data - post-processed data from getWords()
    */
   getFillerWords = (data) => {
-    return data.filter(function (d) {
-      return d.filler;
-    });
+    return data.filter((d) => d.filler);
   };
 
   /**
-   * getHistogram - use d3's histogram layout
-   * to generate histogram bins for our word data
-   *
-   * @param data - word data. we use filler words
-   *  from getFillerWords
+   * use d3's histogram layout to generate histogram bins for our word data
+   * @param data - post-processed data from getFillerWords()
    */
   getHistogram = (data) => {
     // only get words from the first 30 minutes
-    var thirtyMins = data.filter(function (d) {
-      return d.min < 30;
-    });
+    var thirtyMins = data.filter((d) => d.min < 30);
     // bin data into 2 minutes chuncks
     // from 0 - 31 minutes
     // @v4 The d3.histogram() produces a significantly different
@@ -669,92 +747,22 @@ export default class Sections {
     // to inform how you use it. Its different!
     return d3
       .histogram()
-      .thresholds(xHistScale.ticks(10))
-      .value(function (d) {
-        return d.min;
-      })(thirtyMins);
+      .thresholds(this.xHistScale.ticks(10))
+      .value((d) => d.min)(thirtyMins);
   };
 
   /**
-   * groupByWord - group words together
-   * using nest. Used to get counts for
-   * barcharts.
-   *
+   * groupByWord - group words together using nest Used to get counts for bar charts.
    * @param words
    */
   groupByWord = (words) => {
-    return d3
+    return d3Collection
       .nest()
-      .key(function (d) {
-        return d.word;
-      })
-      .rollup(function (v) {
-        return v.length;
-      })
+      .key((d) => d.word)
+      .rollup((v) => v.length)
       .entries(words)
-      .sort(function (a, b) {
-        return b.value - a.value;
-      });
+      .sort((a, b) => b.value - a.value);
   };
 
-  /**
-   * activate -
-   *
-   * @param index - index of the activated section
-   */
-  activate = (index) => {
-    activeIndex = index;
-    var sign = activeIndex - lastIndex < 0 ? -1 : 1;
-    var scrolledSections = d3.range(lastIndex + sign, activeIndex + sign, sign);
-    scrolledSections.forEach(function (i) {
-      activateFunctions[i]();
-    });
-    lastIndex = activeIndex;
-  };
-
-  /**
-   * update
-   *
-   * @param index
-   * @param progress
-   */
-  update = function (index, progress) {
-    updateFunctions[index](progress);
-  };
-}
-
-/**
- * display - called once data
- * has been loaded.
- * sets up the scroller and
- * displays the visualization.
- *
- * @param data - loaded tsv data
- */
-function display(data) {
-  // create a new plot and
-  // display it
-  var plot = scrollVis();
-  d3.select("#vis").datum(data).call(plot);
-
-  // setup scroll functionality
-  var scroll = scroller().container(d3.select("#graphic"));
-
-  // pass in .step selection as the steps
-  scroll(d3.selectAll(".step"));
-
-  // setup event handling
-  scroll.on("active", function (index) {
-    // highlight current step text
-    d3.selectAll(".step").style("opacity", function (d, i) {
-      return i === index ? 1 : 0.1;
-    });
-
-    // activate current section
-    plot.activate(index);
-  });
-
-  scroll.on("progress", function (index, progress) {
-    plot.update(index, progress);
-  });
+  //#endregion data func
 }
