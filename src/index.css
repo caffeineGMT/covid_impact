@@ -7,51 +7,26 @@ html, body{
   scroll-behavior: smooth;
 }
 
-.container {
-  width: 890px;
-}
-
-#graphic {
-  padding-top: 60px;
-}
-
-
+/* Toilet paper */
 #sections {
-  position: relative;
-  display: inline-block;
   width: 250px;
-  top: 0px;
-  z-index: 90;
-  padding-bottom: 200px;
+  margin: 200px;
+  text-align: justify;
 }
 
 .step {
   margin-bottom: 200px;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 16px;
-  line-height: 23px;
-  color: #767678;
 }
 
 #sections .title {
-  font-family: Arial,Helvetica,"san-serif";
-  font-size: 16px;
+  font-size: large;
   font-weight: bold;
-  margin-bottom: 2px;
-  color: #262626;
-  line-height: 1.2em;
-}
-
-#extra-space {
-  height: 300px;
+  text-align: center;
 }
 
 #vis {
-  display: inline-block;
   position: fixed;
-  top: 60px;
-  z-index: 1;
-  margin-left: 0;
+  top: 20%;
 }
 
 #vis .title {
@@ -66,22 +41,19 @@ html, body{
 
 .axis path,
 .axis line {
-  fill: none;
-  stroke: #666;
+  stroke: #d8d8d8;
   shape-rendering: crispEdges;
 }
 
 .highlight {
-  fill: #008080;
+  fill:rgb(223, 150, 42);
   font-weight: bold;
 }
 
 .cough-arrow {
-  stroke: #000;
+  stroke: rgb(223, 150, 42);
   stroke-width: 4px;
-
 }
-
 
 /* Animal */
 .animal .line-path {

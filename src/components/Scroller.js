@@ -1,29 +1,26 @@
 /**
- * ref: https://github.com/vlandham/scroll_demo/blob/gh-pages/js/scroller.js
- * handles the details of figuring out which section the user is currently scrolled to
+ * ref:
+ * https://github.com/vlandham/scroll_demo/blob/gh-pages/js/scroller.js
+ * https://vallandingham.me/think_you_can_scroll.html
  */
 import * as d3 from "d3";
 
 export default class Scroller {
   /**
    * Sets up scroller to monitor scrolling of els selection.
-   * @param elements - d3 selection of
-   *  elements that will be scrolled
-   *  through by user.
+   * @param elements - d3 selection of elements that will be scrolled through by user.
+   * @param container - d3 selection of container that contains section + visualization area
    */
-  constructor(elements) {
-    this.container = d3.select("#sections");
-    // event dispatcher
-    this.dispatch = d3.dispatch("active", "progress");
-    // d3 selection of all the text sections that will be scrolled thru
+  constructor(elements, container) {
+    this.container = container;
     this.sections = elements;
-    // array that will hold the y coordinate of each section that is scrolled through
+
     this.sectionPositions = [];
     this.currentIndex = -1;
-    // y coordinate of container start
     this.containerStart = 0;
 
-    // when window is scrolled call position. When it is resized call resize.
+    this.dispatch = d3.dispatch("active", "progress");
+
     // .scroller namespace
     d3.select(window)
       .on("scroll.scroller", this.position)
@@ -31,12 +28,6 @@ export default class Scroller {
 
     // manually call resize initially to setup scroller.
     this.resize();
-
-    // hack to get position to be called once for the scroll position on load.
-    // let timer = d3.timer(function () {
-    //   this.position();
-    //   timer.stop();
-    // });
   }
 
   /**
@@ -45,7 +36,6 @@ export default class Scroller {
    */
   resize = () => {
     // sectionPositions will be each sections starting position relative to the top of the first section.
-    this.sectionPositions = [];
     let startPos;
     this.sections.each((d, i, nodes) => {
       let top = nodes[i].getBoundingClientRect().top;
@@ -58,10 +48,7 @@ export default class Scroller {
   };
 
   /**
-   * position - get current users position.
-   * if user has scrolled to new section,
-   * dispatch active event with new section
-   * index.
+   * position - get current users position. if user has scrolled to new section, dispatch active event with new section index.
    */
   position = () => {
     let pos = window.scrollY - 10 - this.containerStart;
@@ -77,21 +64,6 @@ export default class Scroller {
     let progress =
       (pos - prevTop) / (this.sectionPositions[sectionIndex] - prevTop);
     this.dispatch.call("progress", this, this.currentIndex, progress);
-  };
-
-  /**
-   * container - get/set the parent element
-   * of the sections. Useful for if the
-   * scrolling doesn't start at the very top
-   * of the page.
-   * @param value - the new container value
-   */
-  container = function (value) {
-    if (arguments.length === 0) {
-      return this.container;
-    }
-    this.container = value;
-    return this;
   };
 
   getContainer = () => {

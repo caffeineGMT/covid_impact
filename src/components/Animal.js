@@ -143,7 +143,7 @@ export default class Animal extends React.Component {
   render() {
     return (
       <div
-        className="animal container-fluid"
+        className="container-fluid"
         id="animal adoption"
         style={{
           height: 900,

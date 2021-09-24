@@ -4,7 +4,7 @@ import Scroller from "./Scroller";
 
 export default class Sections {
   width = 600;
-  height = 520;
+  height = 600;
   margin = { top: 0, left: 20, bottom: 40, right: 10 };
   lastIndex = -1;
   activeIndex = 0;
@@ -54,34 +54,6 @@ export default class Sections {
    *  to draw the visualization in. For this
    *  example, we will be drawing it in #vis
    */
-
-  /**
-   * setupVis - creates initial elements for all
-   * sections of the visualization.
-   *
-   * @param wordData - data object for each word.
-   * @param fillerCounts - nested data that includes
-   *  element for each filler word type.
-   * @param histData - binned histogram data
-   */
-
-  // chart = (selection) => {
-  //   selection.each((d, i, nodes) => {
-  //     this.svg = d3.select(nodes).selectAll("svg").data([]);
-  //     console.log(this.svg);
-  //     var svgEntry = this.svg.enter().append("svg");
-  //     this.svg = this.svg.merge(svgEntry);
-  //     this.svg.attr("width", this.width + this.margin.left + this.margin.right);
-  //     this.svg.attr(
-  //       "height",
-  //       this.height + this.margin.top + this.margin.bottom
-  //     );
-  //     this.svg.append("g");
-  //     this.g = this.svg
-  //       .select("g")
-  //       .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
-  //   });
-  // };
 
   setupVis = function (selection) {
     this.svg = selection.selectAll("svg").data([this.wordData]);
@@ -255,9 +227,7 @@ export default class Sections {
   };
 
   setupScroller = () => {
-    const steps = d3.selectAll(".step");
-    const scroller = new Scroller(steps);
-    scroller.setContainer("#graphic");
+    const scroller = new Scroller(d3.selectAll(".step"), d3.select("#graphic"));
 
     scroller.on("active", (curIndex) => {
       d3.selectAll(".step").style("opacity", (d, i) => {
