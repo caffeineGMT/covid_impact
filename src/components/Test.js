@@ -10,8 +10,6 @@ export default class Test extends React.Component {
   }
 
   componentDidMount = () => {
-    const steps = d3.selectAll(".step");
-    const scroller = new Scroller(steps);
     const sections = new Sections();
   };
 

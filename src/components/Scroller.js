@@ -94,6 +94,14 @@ export default class Scroller {
     return this;
   };
 
+  getContainer = () => {
+    return this.container;
+  };
+
+  setContainer = (container) => {
+    this.container = container;
+  };
+
   // implements a .on method to pass in a callback to the dispatcher.
   on = (action, callback) => {
     this.dispatch.on(action, callback);
