@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import * as d3Collection from "d3-collection";
-import Scroller from "./Scroller";
+import Scroller from "../components/Scroller";
 
 export default class Sections {
   width = 600;
@@ -15,6 +15,7 @@ export default class Sections {
 
   svg = null;
   g = null;
+  colors = { 0: "#008080", 1: "#399785", 2: "#5AAF8C" };
 
   activateFunctions = [];
   updateFunctions = [];
@@ -29,13 +30,13 @@ export default class Sections {
 
   /**
    * called once data has been loaded.
-   * sets up the scroller and displays the visualization.
    * @param rawData - loaded tsv data
    */
   init = (rawData) => {
     this.setupData(rawData);
 
     this.setupVis(d3.select("#vis"));
+    this.setupOthers();
     this.setupBarChart();
     this.setupHistogram();
 
@@ -46,17 +47,14 @@ export default class Sections {
   setupData = (rawData) => {
     this.wordData = this.getWords(rawData);
     this.fillerWords = this.getFillerWords(this.wordData);
-    this.histData = this.getHistogram(this.fillerWords);
   };
 
   /**
-   * @param selection - the current d3 selection(s)
-   *  to draw the visualization in. For this
-   *  example, we will be drawing it in #vis
+   * @param selection - the current d3 selection(s) to draw the visualization in.
    */
 
-  setupVis = function (selection) {
-    this.svg = selection.selectAll("svg").data([this.wordData]);
+  setupVis = (selection) => {
+    this.svg = selection.selectAll("svg").data([this.wordData]); // [array] wraps array as an another array with just 1 item inside
     var svgEntry = this.svg.enter().append("svg");
     this.svg = this.svg.merge(svgEntry);
     this.svg.attr("width", this.width + this.margin.left + this.margin.right);
@@ -65,8 +63,10 @@ export default class Sections {
     this.g = this.svg
       .select("g")
       .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
+  };
 
-    // count openvis title
+  setupOthers = () => {
+    //openVis title
     this.g
       .append("text")
       .attr("class", "title openvis-title")
@@ -97,10 +97,10 @@ export default class Sections {
     this.g.selectAll(".count-title").attr("opacity", 0);
 
     // square grid
-    var squares = this.g
+    let squares = this.g
       .selectAll(".square")
       .data(this.wordData, (d) => d.word);
-    var squaresE = squares.enter().append("rect").classed("square", true);
+    const squaresE = squares.enter().append("rect").classed("square", true);
     squares = squares
       .merge(squaresE)
       .attr("width", this.squareSize)
@@ -119,8 +119,7 @@ export default class Sections {
       .attr("y", 60)
       .text("cough")
       .attr("opacity", 0);
-    // arrowhead from
-    // http://logogin.blogspot.com/2013/02/d3js-arrowhead-markers.html
+    // arrowhead
     this.svg
       .append("defs")
       .append("marker")
@@ -136,7 +135,7 @@ export default class Sections {
       .attr("class", "cough cough-arrow")
       .attr("marker-end", "url(#arrowhead)")
       .attr("d", () => {
-        var line = "M " + (this.width / 2 - 10) + " " + 80;
+        let line = "M " + (this.width / 2 - 10) + " " + 80;
         line += " l 0 " + 230;
         return line;
       })
@@ -146,6 +145,7 @@ export default class Sections {
   setupBarChart = () => {
     const fillerCounts = this.groupByWord(this.fillerWords);
     const countMax = d3.max(fillerCounts, (d) => d.value);
+
     this.xBarScale = d3
       .scaleLinear()
       .domain([0, countMax])
@@ -155,7 +155,6 @@ export default class Sections {
       .paddingInner(0.08)
       .domain([0, 1, 2])
       .range([0, this.height - 50], 0.1, 0.1);
-    this.barColors = { 0: "#008080", 1: "#399785", 2: "#5AAF8C" };
     this.xAxisBar = d3.axisBottom().scale(this.xBarScale);
 
     this.g
@@ -165,17 +164,18 @@ export default class Sections {
       .call(this.xAxisBar);
     this.g.select(".x.axis").style("opacity", 0);
 
-    var bars = this.g.selectAll(".bar").data(fillerCounts);
-    var barsE = bars.enter().append("rect").attr("class", "bar");
+    let bars = this.g.selectAll(".bar").data(fillerCounts);
+    const barsE = bars.enter().append("rect").attr("class", "bar");
     bars = bars
       .merge(barsE)
       .attr("x", 0)
       .attr("y", (d, i) => this.yBarScale(i))
-      .attr("fill", (d, i) => this.barColors[i])
+      .attr("fill", (d, i) => this.colors[i])
       .attr("width", 0)
       .attr("height", this.yBarScale.bandwidth());
-    var barText = this.g.selectAll(".bar-text").data(fillerCounts);
-    barText
+    const barText = this.g
+      .selectAll(".bar-text")
+      .data(fillerCounts)
       .enter()
       .append("text")
       .attr("class", "bar-text")
@@ -194,6 +194,9 @@ export default class Sections {
       .scaleLinear()
       .domain([0, 30])
       .range([0, this.width - 20]);
+
+    const histData = this.getHistogram(this.fillerWords);
+
     this.xAxisHist = d3
       .axisBottom()
       .scale(this.xHistScale)
@@ -201,16 +204,16 @@ export default class Sections {
     this.coughColorScale = d3
       .scaleLinear()
       .domain([0, 1.0])
-      .range(["#008080", "red"]);
+      .range(["#008080", "orange"]);
 
-    const histMax = d3.max(this.histData, (d) => d.length);
+    const histMax = d3.max(histData, (d) => d.length);
     this.yHistScale = d3
       .scaleLinear()
       .domain([0, histMax])
       .range([this.height, 0]);
 
-    var hist = this.g.selectAll(".hist").data(this.histData);
-    var histE = hist.enter().append("rect").attr("class", "hist");
+    let hist = this.g.selectAll(".hist").data(histData);
+    const histE = hist.enter().append("rect").attr("class", "hist");
     hist = hist
       .merge(histE)
       .attr("x", (d) => this.xHistScale(d.x0))
@@ -218,11 +221,9 @@ export default class Sections {
       .attr("height", 0)
       .attr(
         "width",
-        this.xHistScale(this.histData[0].x1) -
-          this.xHistScale(this.histData[0].x0) -
-          1
+        this.xHistScale(histData[0].x1) - this.xHistScale(histData[0].x0) - 1
       )
-      .attr("fill", this.barColors[0])
+      .attr("fill", this.colors[0])
       .attr("opacity", 0);
   };
 
@@ -230,9 +231,9 @@ export default class Sections {
     const scroller = new Scroller(d3.selectAll(".step"), d3.select("#graphic"));
 
     scroller.on("active", (curIndex) => {
-      d3.selectAll(".step").style("opacity", (d, i) => {
-        return i === curIndex ? 1 : 0.1;
-      });
+      d3.selectAll(".step").style("opacity", (d, i) =>
+        i === curIndex ? 1 : 0.1
+      );
 
       this.activate(curIndex);
     });
@@ -253,7 +254,7 @@ export default class Sections {
     this.activateFunctions[7] = this.showCough;
     this.activateFunctions[8] = this.showHistAll;
 
-    for (var i = 0; i < 9; i++) {
+    for (let i = 0; i < 9; i++) {
       this.updateFunctions[i] = function () {};
     }
     this.updateFunctions[7] = this.updateCough;
@@ -265,11 +266,11 @@ export default class Sections {
    */
   activate = (curIndex) => {
     this.activeIndex = curIndex;
-    const sign = this.activeIndex - this.lastIndex < 0 ? -1 : 1;
+    const dir = this.activeIndex > this.lastIndex ? 1 : -1;
     const scrolledSections = d3.range(
-      this.lastIndex + sign,
-      this.activeIndex + sign,
-      sign
+      this.lastIndex + dir,
+      this.activeIndex + dir,
+      dir
     );
     scrolledSections.forEach((i) => {
       this.activateFunctions[i]();
@@ -323,13 +324,11 @@ export default class Sections {
    * @param data - post-processed data from getFillerWords()
    */
   getHistogram = (data) => {
-    var thirtyMins = data.filter((d) => d.min < 30);
-    return (
-      d3
-        .bin()
-        // .thresholds(this.xHistScale.ticks(10))
-        .value((d) => d.min)(thirtyMins)
-    );
+    const thirtyMins = data.filter((d) => d.min < 30);
+    return d3
+      .bin()
+      .thresholds(this.xHistScale.ticks(10))
+      .value((d) => d.min)(thirtyMins);
   };
 
   /**
@@ -350,12 +349,9 @@ export default class Sections {
   //#region activate func
 
   /**
-   * showTitle - initial title
-   *
    * hides: count title
    * (no previous step to hide)
    * shows: intro title
-   *
    */
   showTitle = () => {
     this.g
@@ -372,12 +368,9 @@ export default class Sections {
   };
 
   /**
-   * showFillerTitle - filler counts
-   *
    * hides: intro title
    * hides: square grid
    * shows: filler count title
-   *
    */
   showFillerTitle = () => {
     this.g
@@ -396,12 +389,9 @@ export default class Sections {
   };
 
   /**
-   * showGrid - square grid
-   *
    * hides: filler count title
    * hides: filler highlight in grid
    * shows: square grid
-   *
    */
   showGrid = () => {
     this.g
@@ -420,8 +410,6 @@ export default class Sections {
   };
 
   /**
-   * highlightGrid - show fillers in grid
-   *
    * hides: barchart, text and axis
    * shows: square grid and highlighted
    *  filler words. also ensures squares
@@ -429,8 +417,8 @@ export default class Sections {
    */
   highlightGrid = () => {
     this.hideAxis();
-    this.g.selectAll(".bar").transition().duration(600).attr("width", 0);
 
+    this.g.selectAll(".bar").transition().duration(600).attr("width", 0);
     this.g.selectAll(".bar-text").transition().duration(0).attr("opacity", 0);
 
     this.g
@@ -440,9 +428,7 @@ export default class Sections {
       .attr("opacity", 1.0)
       .attr("fill", "#ddd");
 
-    // use named transition to ensure
-    // move happens even if other
-    // transitions are interrupted.
+    // use named transition to ensure move happens even if other transitions are interrupted.
     this.g
       .selectAll(".fill-square")
       .transition("move-fills")
@@ -459,12 +445,9 @@ export default class Sections {
   };
 
   /**
-   * showBar - barchart
-   *
    * hides: square grid
    * hides: histogram
    * shows: barchart
-   *
    */
   showBar = () => {
     // ensure bar axis is set
@@ -509,13 +492,9 @@ export default class Sections {
   };
 
   /**
-   * showHistPart - shows the first part
-   *  of the histogram of filler words
-   *
    * hides: barchart
    * hides: last half of histogram
    * shows: first half of histogram
-   *
    */
   showHistPart = () => {
     // switch the axis to histogram one
@@ -525,8 +504,7 @@ export default class Sections {
 
     this.g.selectAll(".bar").transition().duration(600).attr("width", 0);
 
-    // here we only show a bar if
-    // it is before the 15 minute mark
+    // here we only show a bar if it is before the 15 minute mark
     this.g
       .selectAll(".hist")
       .transition()
@@ -539,14 +517,11 @@ export default class Sections {
   };
 
   /**
-   * showHistAll - show all histogram
-   *
    * hides: cough title and color
    * (previous step is also part of the
    *  histogram, so we don't have to hide
    *  that)
    * shows: all histogram bars
-   *
    */
   showHistAll = () => {
     // ensure the axis to histogram one
@@ -554,8 +529,7 @@ export default class Sections {
 
     this.g.selectAll(".cough").transition().duration(0).attr("opacity", 0);
 
-    // named transition to ensure
-    // color change is not clobbered
+    // named transition to ensure color change is not clobbered
     this.g
       .selectAll(".hist")
       .transition("color")
@@ -572,13 +546,10 @@ export default class Sections {
   };
 
   /**
-   * showCough
-   *
    * hides: nothing
    * (previous and next sections are histograms
    *  so we don't have to hide much here)
    * shows: histogram
-   *
    */
   showCough = () => {
     // ensure the axis to histogram one
@@ -594,9 +565,7 @@ export default class Sections {
   };
 
   /**
-   * showAxis - helper function to
-   * display particular xAxis
-   *
+   * helper function
    * @param axis - the axis to show
    *  (xAxisHist or xAxisBar)
    */
@@ -610,9 +579,8 @@ export default class Sections {
   };
 
   /**
-   * hideAxis - helper function
+   * helper function
    * to hide the axis
-   *
    */
   hideAxis = () => {
     this.g.select(".x.axis").transition().duration(500).style("opacity", 0);
@@ -631,9 +599,6 @@ export default class Sections {
    */
 
   /**
-   * updateCough - increase/decrease
-   * cough text and color
-   *
    * @param progress - 0.0 - 1.0 -
    *  how far user has scrolled in section
    */
@@ -648,9 +613,10 @@ export default class Sections {
       .selectAll(".hist")
       .transition("cough")
       .duration(0)
-      .style("fill", (d) =>
-        d.x0 >= 14 ? this.coughColorScale(progress) : "#008080"
-      );
+      .style("fill", (d) => {
+        console.log(d.x0);
+        return d.x0 >= 14 ? this.coughColorScale(progress) : "#008080";
+      });
   };
 
   //#endregion activate func
