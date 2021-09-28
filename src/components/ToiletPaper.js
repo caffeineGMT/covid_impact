@@ -255,35 +255,42 @@ export default class ToiletPaper extends React.Component {
     });
 
     this.vis = document.querySelector("#vis");
-    this.toilet = document.querySelector("#toilet");
-    this.offset = 1600;
+    this.measure = document.querySelector("#graphic > .col");
+    this.flexContainer = document.querySelector("#graphic");
+
+    this.start = this.measure.offsetTop;
+    this.end = this.start + this.measure.offsetHeight;
     this.rect = this.vis.getBoundingClientRect();
+
     this.virtualElement = document.createElement("div");
-    this.virtualElement.style.height = parseInt(this.rect.height) + "px";
-    window.addEventListener("scroll", this.stick);
+    this.virtualElement.style.height = `${parseInt(this.rect.height)}px`;
+
+    window.addEventListener("scroll", this.makeStick);
   };
 
-  stick = () => {
-    const scroll = window.scrollY;
-    const isSticked = this.vis.classList.contains("stick");
-    if (scroll >= this.offset && scroll <= 4000 && !isSticked) {
+  makeStick = () => {
+    const curTop = window.scrollY;
+    const curBot = window.innerHeight + curTop;
+    const hasStick = this.vis.classList.contains("stick");
+
+    if (curTop >= this.start && curBot <= this.end && !hasStick) {
       this.vis.classList.add("stick");
-      const graphic = document.querySelector("#graphic");
-      graphic.classList.remove("align-items-end");
-      graphic.classList.add("align-items-start");
-      this.vis.style.width = parseInt(this.rect.width) + "px";
+      this.vis.style.width = `${parseInt(this.rect.width)}px`;
       this.vis.parentNode.insertBefore(this.virtualElement, this.vis);
-    } else if (scroll <= this.offset && isSticked) {
+
+      this.flexContainer.classList.remove("align-items-end");
+      this.flexContainer.classList.add("align-items-start");
+    } else if (curTop <= this.start && hasStick) {
       this.vis.classList.remove("stick");
       this.vis.style.width = "auto";
       this.vis.parentNode.removeChild(this.virtualElement);
-    } else if (scroll >= 4000 && isSticked) {
+    } else if (curTop >= 4000 && hasStick) {
       this.vis.classList.remove("stick");
-      const graphic = document.querySelector("#graphic");
-      graphic.classList.remove("align-items-start");
-      graphic.classList.add("align-items-end");
       this.vis.style.width = "auto";
       this.vis.parentNode.removeChild(this.virtualElement);
+
+      this.flexContainer.classList.add("align-items-end");
+      this.flexContainer.classList.remove("align-items-start");
     }
   };
 
@@ -667,7 +674,7 @@ export default class ToiletPaper extends React.Component {
 
   render() {
     return (
-      <div className="container-fluid " id="toilet">
+      <div className="container-fluid" id="toilet">
         <div className="row align-items-start" id="graphic">
           <div className="col">
             <div id="sections">
@@ -728,7 +735,7 @@ export default class ToiletPaper extends React.Component {
               </section>
             </div>
           </div>
-          <div className="col" style={{ display: "flex" }}>
+          <div className="col">
             <div id="vis"></div>
           </div>
         </div>

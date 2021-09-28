@@ -25,14 +25,12 @@ html, body{
 }
 
 #vis {
-  /* position: fixed; */
-  top: 20%;
-  display: flex;
+  /* top: 20%; */
 }
 
 .stick {
   position: fixed;
-  /* top: 20%; */
+  top: 20%;
 }
 
 #vis .title {
