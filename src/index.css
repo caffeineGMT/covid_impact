@@ -7,10 +7,41 @@ html, body{
   scroll-behavior: smooth;
 }
 
+/* Home */
+#home h1 {
+  font-size: 50px;
+  font-weight: bold;
+}
+
+#home p {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+#home h3 {
+  font-size: 30px;
+  font-weight: bold;
+}
+
+#home .row {
+  width: 50%;
+  padding-top: 100px;
+  text-align: justify;
+  font-size: large;
+}
+
+#home #credit {
+  font-size: small;
+  font-weight: bold;
+}
+
 /* Toilet paper */
 #sections {
   width: 250px;
-  margin: 200px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 200px;
+  margin-bottom: 200px;
   text-align: justify;
 }
 
@@ -25,7 +56,10 @@ html, body{
 }
 
 #vis {
-  /* top: 20%; */
+  overflow: hidden;
+  vertical-align: middle;
+  align-items: center;
+  align-content: center;
 }
 
 .stick {
@@ -53,11 +87,6 @@ html, body{
 .highlight {
   fill:rgb(223, 150, 42);
   font-weight: bold;
-}
-
-.cough-arrow {
-  stroke: rgb(223, 150, 42);
-  stroke-width: 4px;
 }
 
 /* Animal */

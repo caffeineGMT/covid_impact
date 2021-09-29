@@ -12,7 +12,7 @@ import Scroller from "../utils/Scroller";
 export default class ToiletPaper extends React.Component {
   width = 600;
   height = 600;
-  margin = { top: 0, left: 20, bottom: 40, right: 10 };
+  margin = { top: 20, left: 20, bottom: 20, right: 20 };
   lastIndex = -1;
   activeIndex = 0;
 
@@ -240,6 +240,7 @@ export default class ToiletPaper extends React.Component {
   };
 
   setupScroller = () => {
+    // setup onScroll event
     const scroller = new Scroller(d3.selectAll(".step"), d3.select("#graphic"));
 
     scroller.on("active", (curIndex) => {
@@ -254,6 +255,7 @@ export default class ToiletPaper extends React.Component {
       this.update(curIndex, progress);
     });
 
+    // setup start and end stick trigger
     this.vis = document.querySelector("#vis");
     this.measure = document.querySelector("#graphic > .col");
     this.flexContainer = document.querySelector("#graphic");
@@ -675,7 +677,7 @@ export default class ToiletPaper extends React.Component {
   render() {
     return (
       <div className="container-fluid" id="toilet">
-        <div className="row align-items-start" id="graphic">
+        <div className="row d-flex align-items-start" id="graphic">
           <div className="col">
             <div id="sections">
               <section className="step">
@@ -735,8 +737,8 @@ export default class ToiletPaper extends React.Component {
               </section>
             </div>
           </div>
-          <div className="col">
-            <div id="vis"></div>
+          <div className="col d-flex align-items-center">
+            <div id="vis" style={{ height: window.innerHeight }}></div>
           </div>
         </div>
       </div>
