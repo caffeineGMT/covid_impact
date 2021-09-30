@@ -134,12 +134,10 @@ export default class CO2 extends React.Component {
   render() {
     return (
       <div
-        className="co2 container-fluid"
+        className="co2 container-fluid d-flex align-items-center"
         id="co2"
         style={{
-          height: 900,
-          display: "flex",
-          alignItems: "center",
+          height: window.innerHeight,
         }}
       >
         <div className="row mx-auto">

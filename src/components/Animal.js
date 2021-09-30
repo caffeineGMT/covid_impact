@@ -143,12 +143,10 @@ export default class Animal extends React.Component {
   render() {
     return (
       <div
-        className="container-fluid"
+        className="container-fluid d-flex align-items-center"
         id="animal adoption"
         style={{
-          height: 900,
-          display: "flex",
-          alignItems: "center",
+          height: window.innerHeight,
         }}
       >
         <div className="row">
