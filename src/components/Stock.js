@@ -9,7 +9,7 @@ export default class Stock extends React.Component {
 
     this.svgRef = React.createRef();
     this.width = 1200;
-    this.height = 500;
+    this.height = 600;
 
     this.dataPath = [];
     this.dataPath.push("./data/stock/Amazon.csv");
@@ -70,49 +70,87 @@ export default class Stock extends React.Component {
   };
 
   draw = () => {
-    // const layerNum = 20; // number of layers
-    // const sampleNum = 300; // number of samples per layer
-    // const bumpNum = 10; // number of bumps per layer
+    const layerNum = 20; // number of layers
+    const sampleNum = 300; // number of samples per layer
+    const bumpNum = 10; // number of bumps per layer
 
-    // const stackGen = d3
-    //   .stack()
-    //   .keys(d3.range(layerNum))
-    //   .offset(d3.stackOffsetWiggle);
+    this.companyList = [
+      "Amazon",
+      "AMC",
+      "Chewy",
+      "Delta",
+      "Facebook",
+      "Google",
+      "Moderna",
+      "Tesla",
+      "Zillow",
+      "Zoom",
+    ];
+    const stackGen = d3
+      .stack()
+      .keys(this.companyList)
+      .offset(d3.stackOffsetWiggle);
+    const stackedSeries = stackGen(this.data);
+    console.log(this.data);
+    console.log(stackedSeries);
 
-    // // data
-    // let layers0 = stackGen(
-    //   d3.transpose(d3.range(layerNum).map(() => bumps(sampleNum, bumpNum)))
-    // );
-    // let layers1 = stackGen(
-    //   d3.transpose(d3.range(layerNum).map(() => bumps(sampleNum, bumpNum)))
-    // );
-    // const layers = layers0.concat(layers1);
+    const svg = d3.select(this.svgRef.current);
+    svg.attr("width", this.width).attr("height", this.height);
 
-    // const svg = d3.select(this.svgRef.current);
-    // svg.attr("width", this.width).attr("height", this.height);
+    const xScale = d3
+      .scaleTime()
+      .domain([this.data[this.data.length - 1].Date, this.data[0].Date])
+      .range([0, this.width]);
+    const yScale = d3.scaleLinear().domain([10, 4000]).range([0, 300]);
+    const colorScale = d3.interpolateBlues;
+    // var colorScale = d3
+    //   .scaleOrdinal()
+    //   .domain([
+    //     "Amazon",
+    //     "AMC",
+    //     "Chewy",
+    //     "Delta",
+    //     "Facebook",
+    //     "Google",
+    //     "Moderna",
+    //     "Tesla",
+    //     "Zillow",
+    //     "Zoom",
+    //   ])
+    //   .range(["red", "yellow", "orange"]);
+    const areaGen = d3
+      .area()
+      .x((d) => xScale(d.data.Date))
+      .y0((d) => yScale(d[0]))
+      .y1((d) => yScale(d[1]));
 
-    // const xScale = d3
-    //   .scaleLinear()
-    //   .domain([0, sampleNum - 1])
-    //   .range([0, this.width]);
-    // const yScale = d3
-    //   .scaleLinear()
-    //   .domain([d3.min(layers, stackMin), d3.max(layers, stackMax)])
-    //   .range([this.height, 0]);
-    // const colorScale = d3.interpolatePlasma;
-    // const areaGen = d3
-    //   .area()
-    //   .x((d, i) => xScale(i))
-    //   .y0((d) => yScale(d[0]))
-    //   .y1((d) => yScale(d[1]));
+    svg
+      .selectAll("path")
+      .data(stackedSeries)
+      .enter()
+      .append("path")
+      .attr("d", areaGen)
+      .attr("fill", () => colorScale(Math.random()));
 
-    // svg
-    //   .selectAll("path")
-    //   .data(layers0)
-    //   .enter()
-    //   .append("path")
-    //   .attr("d", areaGen)
-    //   .attr("fill", () => colorScale(Math.random()));
+    svg
+      .selectAll("path")
+      .attr("opacity", 1)
+      .on("mouseover", (d, i) => {
+        svg
+          .selectAll("path")
+          .transition()
+          .duration(250)
+          .attr("opacity", (d, j) => {
+            return j != i ? 0.6 : 1;
+          });
+      })
+      // .on("mousemove", function (e) {
+      //   mousex = d3.pointer(e)
+      // })
+      .on("mouseout", function (d, i) {
+        svg.selectAll("path").transition().duration(250).attr("opacity", 1);
+        d3.select(this).classed("hover", false).attr("stroke-width", "0px");
+      });
 
     // helper functions
     function stackMax(layers) {
