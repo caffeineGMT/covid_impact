@@ -8,20 +8,31 @@ export default class Stock extends React.Component {
     this.state = {};
 
     this.svgRef = React.createRef();
-    this.width = 1200;
-    this.height = 600;
+    this.width = 2000;
+    this.height = 620;
 
     this.dataPath = [];
-    this.dataPath.push("./data/stock/Amazon.csv");
-    this.dataPath.push("./data/stock/AMC.csv");
-    this.dataPath.push("./data/stock/Chewy.csv");
-    this.dataPath.push("./data/stock/Delta.csv");
-    this.dataPath.push("./data/stock/Facebook.csv");
-    this.dataPath.push("./data/stock/Google.csv");
-    this.dataPath.push("./data/stock/Moderna.csv");
-    this.dataPath.push("./data/stock/Tesla.csv");
-    this.dataPath.push("./data/stock/Zillow.csv");
-    this.dataPath.push("./data/stock/Zoom.csv");
+    this.companyList = [
+      "Delta",
+      "Moderna",
+      "ExxonMobil",
+      "Nordstrom",
+      "Disney",
+      "Uber",
+      "Netflix",
+      "Boeing",
+      "Chewy",
+      "Zillow",
+      "Zoom",
+      "Facebook",
+      "Tesla",
+      "Google",
+      "Amazon",
+    ];
+
+    this.companyList.forEach((element) => {
+      this.dataPath.push(`./data/stock/${element}.csv`);
+    });
 
     this.data = [];
   }
@@ -51,7 +62,9 @@ export default class Stock extends React.Component {
           [nameStr]: priceNum,
         };
       });
-      rawData = rawData.filter((d) => d.Date.getFullYear() == 2020);
+      rawData = rawData.filter(
+        (d) => d.Date.getFullYear() === 2020 && d.Date.getDate() % 3 === 0 // % 3 to smooth out data
+      );
       this.data.push(rawData);
     }
   };
@@ -70,87 +83,100 @@ export default class Stock extends React.Component {
   };
 
   draw = () => {
-    const layerNum = 20; // number of layers
-    const sampleNum = 300; // number of samples per layer
-    const bumpNum = 10; // number of bumps per layer
-
-    this.companyList = [
-      "Amazon",
-      "AMC",
-      "Chewy",
-      "Delta",
-      "Facebook",
-      "Google",
-      "Moderna",
-      "Tesla",
-      "Zillow",
-      "Zoom",
-    ];
+    // data
     const stackGen = d3
       .stack()
       .keys(this.companyList)
       .offset(d3.stackOffsetWiggle);
     const stackedSeries = stackGen(this.data);
-    console.log(this.data);
-    console.log(stackedSeries);
 
+    // svg
     const svg = d3.select(this.svgRef.current);
     svg.attr("width", this.width).attr("height", this.height);
 
+    // scale
     const xScale = d3
       .scaleTime()
       .domain([this.data[this.data.length - 1].Date, this.data[0].Date])
       .range([0, this.width]);
-    const yScale = d3.scaleLinear().domain([10, 4000]).range([0, 300]);
-    const colorScale = d3.interpolateBlues;
-    // var colorScale = d3
-    //   .scaleOrdinal()
-    //   .domain([
-    //     "Amazon",
-    //     "AMC",
-    //     "Chewy",
-    //     "Delta",
-    //     "Facebook",
-    //     "Google",
-    //     "Moderna",
-    //     "Tesla",
-    //     "Zillow",
-    //     "Zoom",
-    //   ])
-    //   .range(["red", "yellow", "orange"]);
+    const yScale = d3.scaleLinear().domain([0, 4000]).range([0, 300]);
+    const colorScale = d3.scaleOrdinal().domain(this.companyList).range([
+      // "#ab2668", // purple
+      // "#ef3f5d", // light-red
+      // "#00aaa9", // green-blue
+      // "#bfc0c2", // light-grey
+      // "#fcf001", // light-yellow
+      // "#c2272d", // dark red
+      // "#c9da29", // blue-yellow
+      "#03a7c1", // blue-green
+      "#be1a8b", // dark pink
+      "#75d1f3", // light blue
+      "#7f65aa", // light purple
+      "#01aef0", // blue
+      "#ed0477", // pink
+      "#5d2d91", // dark purple
+      "#84bc41", // light green
+      "#01954e", // green
+      "#ffc60e", // yellow
+      "#94238e", // purple
+      "#ec6aa0", // light pink
+      "#d71b32", // red
+      "#f69324", // orange
+      "#015aaa", // blue
+    ]);
+
+    // axis
+    const xAxis = d3.axisBottom(xScale).tickPadding(15);
+
+    // draw
     const areaGen = d3
       .area()
       .x((d) => xScale(d.data.Date))
       .y0((d) => yScale(d[0]))
-      .y1((d) => yScale(d[1]));
+      .y1((d) => yScale(d[1]))
+      .curve(d3.curveBasis);
 
+    var vertical = svg
+      .append("div")
+      .attr("class", "remove")
+      .style("position", "absolute")
+      .style("z-index", "19")
+      .style("width", "1px")
+      .style("height", "380px")
+      .style("top", "10px")
+      .style("bottom", "30px")
+      .style("left", "0px")
+      .style("background", "#fff");
+
+    svg
+      .on("mousemove", function (e) {
+        const [x, y] = d3.pointer(e);
+        vertical.style("left", x + "px");
+      })
+      .on("mouseover", function (e) {
+        const [x, y] = d3.pointer(e);
+        vertical.style("left", x + "px");
+      });
     svg
       .selectAll("path")
       .data(stackedSeries)
       .enter()
       .append("path")
       .attr("d", areaGen)
-      .attr("fill", () => colorScale(Math.random()));
+      .attr("fill", (d, i) => colorScale(d.key));
+    svg
+      .append("g")
+      .attr("class", "xAxis")
+      .attr("transform", `translate(0, ${this.height})`)
+      .style("stroke", "#f00")
+      .call(xAxis);
 
     svg
       .selectAll("path")
       .attr("opacity", 1)
-      .on("mouseover", (d, i) => {
-        svg
-          .selectAll("path")
-          .transition()
-          .duration(250)
-          .attr("opacity", (d, j) => {
-            return j != i ? 0.6 : 1;
-          });
-      })
-      // .on("mousemove", function (e) {
-      //   mousex = d3.pointer(e)
-      // })
-      .on("mouseout", function (d, i) {
-        svg.selectAll("path").transition().duration(250).attr("opacity", 1);
-        d3.select(this).classed("hover", false).attr("stroke-width", "0px");
-      });
+      .on("mouseover", handleMouseOver)
+      // .on("mousemove", handleMouseMove)
+      .on("mouseout", handleMouseOut);
 
     // helper functions
     function stackMax(layers) {
@@ -161,30 +187,33 @@ export default class Stock extends React.Component {
       return d3.min(layers, (d) => d[0]);
     }
 
-    // function transition() {
-    //   var t;
-    //   d3.selectAll("path")
-    //     .data(((t = layers1), (layers1 = layers0), (layers0 = t)))
-    //     .transition()
-    //     .duration(2500)
-    //     .attr("d", areaGen);
-    // }
-
-    function bumps(sampleNum, bumpNum) {
-      const a = [];
-      for (let i = 0; i < sampleNum; i++) a[i] = 0;
-      for (let i = 0; i < bumpNum; i++) bump(a, sampleNum);
-      return a;
+    function handleMouseOver(event, curDatum) {
+      console.log(event);
+      let curIdx = curDatum.index;
+      svg
+        .selectAll("path")
+        .transition()
+        .duration(0)
+        .attr("opacity", (d, idx) => (idx != curIdx ? 0.2 : 1));
     }
 
-    function bump(a, n) {
-      const x = 1 / (0.1 + Math.random());
-      const y = 2 * Math.random() - 0.5;
-      const z = 10 / (0.1 + Math.random());
-      for (let i = 0; i < n; i++) {
-        const w = (i / n - y) * z;
-        a[i] += x * Math.exp(-w * w);
-      }
+    function handleMouseMove(event, curDatum) {
+      let curIdx = curDatum.index;
+      svg
+        .selectAll("path")
+        .transition()
+        .duration(0)
+        .attr("opacity", (d, idx) => (idx != curIdx ? 0.2 : 1));
+
+      const [x, y] = d3.pointer(event);
+      console.log(event);
+      svg.selectAll("text").remove();
+      const text = svg.append("text");
+      text.attr("x", x).attr("y", y).style("fill", "white").text(curDatum.key);
+    }
+
+    function handleMouseOut(event, curDatum) {
+      svg.selectAll("path").transition().duration(250).attr("opacity", 1);
     }
   };
 
@@ -207,7 +236,7 @@ export default class Stock extends React.Component {
               effects?
             </p>
           </div>
-          <div className="col-md-9 text-right">
+          <div className="col-md-12" style={{ marginLeft: -115 }}>
             <svg ref={this.svgRef}></svg>
           </div>
         </div>

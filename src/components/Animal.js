@@ -147,6 +147,7 @@ export default class Animal extends React.Component {
         id="animal adoption"
         style={{
           height: window.innerHeight,
+          marginTop: 100,
         }}
       >
         <div className="row">
