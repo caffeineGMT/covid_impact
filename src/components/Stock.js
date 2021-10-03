@@ -8,8 +8,11 @@ export default class Stock extends React.Component {
     this.state = {};
 
     this.svgRef = React.createRef();
-    this.width = 2000;
-    this.height = 620;
+    this.margin = { top: 30, right: 0, bottom: 30, left: 0 };
+    this.width = window.innerWidth;
+    this.height = 680;
+    this.innerWidth = this.width - this.margin.left - this.margin.right;
+    this.innerHeight = this.height - this.margin.top - this.margin.bottom;
 
     this.dataPath = [];
     this.companyList = [
@@ -93,12 +96,17 @@ export default class Stock extends React.Component {
     // svg
     const svg = d3.select(this.svgRef.current);
     svg.attr("width", this.width).attr("height", this.height);
+    const g = svg
+      .append("g")
+      .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
     // scale
+    console.log(this.data[this.data.length - 1].Date);
     const xScale = d3
       .scaleTime()
-      .domain([this.data[this.data.length - 1].Date, this.data[0].Date])
-      .range([0, this.width]);
+      .domain([new Date(2020, 0, 1), new Date(2020, 12, 1)])
+      .range([0, this.width])
+      .nice();
     const yScale = d3.scaleLinear().domain([0, 4000]).range([0, 300]);
     const colorScale = d3.scaleOrdinal().domain(this.companyList).range([
       // "#ab2668", // purple
@@ -126,7 +134,11 @@ export default class Stock extends React.Component {
     ]);
 
     // axis
-    const xAxis = d3.axisBottom(xScale).tickPadding(15);
+    const xAxis = d3
+      .axisBottom(xScale)
+      .ticks(d3.timeWeek)
+      .tickPadding(15)
+      .tickSize(1);
 
     // draw
     const areaGen = d3
@@ -136,47 +148,36 @@ export default class Stock extends React.Component {
       .y1((d) => yScale(d[1]))
       .curve(d3.curveBasis);
 
-    var vertical = svg
+    const vertical = svg
       .append("div")
       .attr("class", "remove")
       .style("position", "absolute")
       .style("z-index", "19")
       .style("width", "1px")
       .style("height", "380px")
-      .style("top", "10px")
-      .style("bottom", "30px")
-      .style("left", "0px")
+      .style("top", "100px")
+      .style("bottom", "2000px")
+      .style("left", "100px")
       .style("background", "#fff");
 
-    svg
-      .on("mousemove", function (e) {
-        const [x, y] = d3.pointer(e);
-        vertical.style("left", x + "px");
-      })
-      .on("mouseover", function (e) {
-        const [x, y] = d3.pointer(e);
-        vertical.style("left", x + "px");
-      });
-    svg
-      .selectAll("path")
+    g.selectAll("path")
       .data(stackedSeries)
       .enter()
       .append("path")
       .attr("d", areaGen)
       .attr("fill", (d, i) => colorScale(d.key));
-    svg
+    const xAisG = g
       .append("g")
       .attr("class", "xAxis")
-      .attr("transform", `translate(0, ${this.height})`)
-      .style("stroke", "#f00")
+      .attr("transform", `translate(0, ${this.innerHeight})`)
       .call(xAxis);
+    xAisG.select(".domain").remove();
 
-    svg
-      .selectAll("path")
+    g.selectAll("path")
       .attr("opacity", 1)
-      .on("mouseover", handleMouseOver)
-      // .on("mousemove", handleMouseMove)
-      .on("mouseout", handleMouseOut);
+      .on("mouseenter", handleMouseEnter)
+      .on("mousemove", handleMouseMove)
+      .on("mouseleave", handleMouseLeave);
 
     // helper functions
     function stackMax(layers) {
@@ -187,48 +188,50 @@ export default class Stock extends React.Component {
       return d3.min(layers, (d) => d[0]);
     }
 
-    function handleMouseOver(event, curDatum) {
-      console.log(event);
+    function handleMouseEnter(event, curDatum) {
+      const [x, y] = d3.pointer(event);
       let curIdx = curDatum.index;
-      svg
-        .selectAll("path")
+      g.selectAll("path")
         .transition()
         .duration(0)
         .attr("opacity", (d, idx) => (idx != curIdx ? 0.2 : 1));
+
+      vertical.style("left", x + "px");
     }
 
     function handleMouseMove(event, curDatum) {
-      let curIdx = curDatum.index;
-      svg
-        .selectAll("path")
-        .transition()
-        .duration(0)
-        .attr("opacity", (d, idx) => (idx != curIdx ? 0.2 : 1));
-
       const [x, y] = d3.pointer(event);
-      console.log(event);
-      svg.selectAll("text").remove();
+      console.log(curDatum);
+      svg.selectAll("#tooltip").remove();
       const text = svg.append("text");
-      text.attr("x", x).attr("y", y).style("fill", "white").text(curDatum.key);
+      text
+        .attr("x", x)
+        .attr("y", y)
+        .attr("id", "tooltip")
+        .style("fill", "white")
+        .text(curDatum.key);
+
+      vertical.style("left", x + "px");
     }
 
-    function handleMouseOut(event, curDatum) {
-      svg.selectAll("path").transition().duration(250).attr("opacity", 1);
+    function handleMouseLeave(event, curDatum) {
+      g.selectAll("path").transition().duration(250).attr("opacity", 1);
+      svg.selectAll("#tooltip").remove();
     }
   };
 
   render() {
     return (
       <div
-        className="stock container-fluid d-flex align-items-center"
+        className="stock container-fluid"
         id="stock"
         style={{
           height: window.innerHeight,
         }}
       >
         <div className="row">
-          <div className="col-md-3 text-left">
-            <h1 style={{ fontSize: "4em" }}>Stock</h1>
+          <div className="col-md-3">
+            <h1>Stock</h1>
             <p className="text-justify">
               The COVID-19 pandemic and resulting economic crisis had an impact
               on almost every aspect of our life, including toilet paper, stock,
@@ -236,7 +239,9 @@ export default class Stock extends React.Component {
               effects?
             </p>
           </div>
-          <div className="col-md-12" style={{ marginLeft: -115 }}>
+        </div>
+        <div className="row row-full">
+          <div className="col">
             <svg ref={this.svgRef}></svg>
           </div>
         </div>

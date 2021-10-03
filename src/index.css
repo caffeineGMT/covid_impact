@@ -119,8 +119,17 @@ path.line-path {
   margin-top: 400px;
 }
 
-#stock .tick {
-  color: #d8d8d8;
+/* https://coderwall.com/p/hkgamw/creating-full-width-100-container-inside-fixed-width-container */
+#stock .row-full {
+  width: 100vw;
+  position: relative;
+  margin-left: -50vw;
+  left: 50%;
+}
+
+#stock h1 {
+  font-size: 4em;
+  text-align: left
 }
 
 
