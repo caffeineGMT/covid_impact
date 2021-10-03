@@ -22,7 +22,7 @@ export default class ToiletPaper extends React.Component {
 
   svg = null;
   g = null;
-  colors = { 0: "#008080", 1: "#399785", 2: "#5AAF8C" };
+  colors = { 0: "#84bc41", 1: "#fcf001", 2: "#75d1f3" };
 
   activateFunctions = [];
   updateFunctions = [];
@@ -117,7 +117,7 @@ export default class ToiletPaper extends React.Component {
       .merge(squaresE)
       .attr("width", this.squareSize)
       .attr("height", this.squareSize)
-      .attr("fill", "#fff")
+      .attr("fill", "#d8d8d8")
       .classed("fill-square", (d) => d.filler)
       .attr("x", (d) => d.x)
       .attr("y", (d) => d.y)
@@ -216,7 +216,7 @@ export default class ToiletPaper extends React.Component {
     this.coughColorScale = d3
       .scaleLinear()
       .domain([0, 1.0])
-      .range(["#008080", "orange"]);
+      .range(["#75d1f3", "#75d1f3"]);
 
     const histMax = d3.max(histData, (d) => d.length);
     this.yHistScale = d3
@@ -494,7 +494,7 @@ export default class ToiletPaper extends React.Component {
       .transition()
       .duration(800)
       .attr("opacity", 1.0)
-      .attr("fill", (d) => (d.filler ? "#008080" : "#ddd"));
+      .attr("fill", (d) => (d.filler ? "orange" : "black"));
   };
 
   /**

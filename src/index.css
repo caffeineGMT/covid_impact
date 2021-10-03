@@ -132,6 +132,12 @@ path.line-path {
   text-align: left
 }
 
+/* CO2 */
+
+#co2 h1 {
+  font-size: 4em;
+  text-align: left
+}
 
 /* Vertical Navigation Bar*/
 #cd-vertical-nav a {

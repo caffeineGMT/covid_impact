@@ -13,19 +13,19 @@ export default class CO2 extends React.Component {
     this.state = {};
 
     this.canvasRef = React.createRef();
-    this.width = 1000;
-    this.height = 500;
+    this.width = 1300;
+    this.height = 600;
     this.context = null;
 
     this.nodes = [];
     this.strength = -0.25; // default repulsion
     this.centeringStrength = 0.01; // power of centering force for two clusters
     this.velocityDecay = 0.15; // velocity decay: higher value, less overshooting
-    this.outerRadius = 250; // new nodes within this radius
+    this.outerRadius = 300; // new nodes within this radius
     this.innerRadius = 100; // new nodes outside this radius, initial nodes within.
-    this.start = [this.width / 4, this.height / 2]; // new nodes/initial nodes center point
-    this.end = [this.width * (3 / 4), this.height / 2]; // destination center
-    this.n = 500; // number of initial nodes
+    this.start = [this.width / 4 + 50, this.height / 2 + 10]; // new nodes/initial nodes center point
+    this.end = [this.width * (3 / 4) + 150, this.height / 2]; // destination center
+    this.n = 1000; // number of initial nodes
     this.cycles = 100; // number of ticks before stopping.
     this.tick = 0;
     this.simulation = null;
@@ -35,7 +35,7 @@ export default class CO2 extends React.Component {
     const canvas = d3.select(this.canvasRef.current);
     canvas.attr("width", this.width).attr("height", this.height);
     this.context = canvas.node().getContext("2d");
-    // this.draw();
+    this.draw();
   };
 
   // create a random node
@@ -120,8 +120,8 @@ export default class CO2 extends React.Component {
     this.context.clearRect(0, 0, this.width, this.height);
     this.nodes.forEach((d) => {
       this.context.beginPath();
-      this.context.fillStyle = d.migrated ? "steelblue" : "orange";
-      this.context.arc(d.x, d.y, 3, 0, Math.PI * 2);
+      this.context.fillStyle = d.migrated ? "#75d1f3" : "orange";
+      this.context.arc(d.x, d.y, 2, 0, Math.PI * 2);
       this.context.fill();
     });
   };
@@ -140,9 +140,9 @@ export default class CO2 extends React.Component {
           height: window.innerHeight,
         }}
       >
-        <div className="row mx-auto">
-          <div className="col-md-12">
-            <h4 className="text-center">CO2 change</h4>
+        <div className="row">
+          <div className="col-md-3">
+            <h1 className="">CO2 change</h1>
             <p className="text-justify">
               The COVID-19 pandemic and resulting economic crisis had an impact
               on almost every aspect of how energy is produced, supplied, and
@@ -153,21 +153,26 @@ export default class CO2 extends React.Component {
               largely immune. As primary energy demand dropped nearly 4% in
               2020, global energy-related CO2 emissions fell by 5.8% according
               to the latest statistical data, the largest annual percentage
-              decline since World War II. In absolute terms, the decline in
-              emissions of almost 2 000 million tonnes of CO2 is without
-              precedent in human history – broadly speaking, this is the
-              equivalent of removing all of the European Union’s emissions from
-              the global total. Demand for fossil fuels was hardest hit in 2020
-              – especially oil, which plunged 8.6%, and coal, which dropped by
-              4%. Oil’s annual decline was its largest ever, accounting for more
-              than half of the drop in global emissions. Global emissions from
-              oil use plummeted by well over 1 100 Mt CO2, down from around 11
-              400 Mt in 2019. The drop in road transport activity accounted for
-              50% of the decline in global oil demand, and the slump in the
-              aviation sector for around 35%. Meanwhile, low-carbon fuels and
-              technologies, in particular, solar PV and wind, reached their
-              highest ever annual share of the global energy mix, increasing it
-              by more than one percentage point to over 20%.
+              decline since World War II.
+              <br />
+              <br />
+              In absolute terms, the decline in emissions of almost 2 000
+              million tonnes of CO2 is without precedent in human history –
+              broadly speaking, this is the equivalent of removing all of the
+              European Union’s emissions from the global total. Demand for
+              fossil fuels was hardest hit in 2020 – especially oil, which
+              plunged 8.6%, and coal, which dropped by 4%. Oil’s annual decline
+              was its largest ever, accounting for more than half of the drop in
+              global emissions. Global emissions from oil use plummeted by well
+              over 1 100 Mt CO2, down from around 11 400 Mt in 2019.
+              <br />
+              <br />
+              The drop in road transport activity accounted for 50% of the
+              decline in global oil demand, and the slump in the aviation sector
+              for around 35%. Meanwhile, low-carbon fuels and technologies, in
+              particular, solar PV and wind, reached their highest ever annual
+              share of the global energy mix, increasing it by more than one
+              percentage point to over 20%.
             </p>
             <button
               type="button"
@@ -177,7 +182,7 @@ export default class CO2 extends React.Component {
               play / replay
             </button>
           </div>
-          <div className="col-md-12 align-items-center">
+          <div className="col-md-9">
             <canvas ref={this.canvasRef}></canvas>
           </div>
         </div>

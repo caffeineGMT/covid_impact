@@ -147,7 +147,6 @@ export default class Animal extends React.Component {
         id="animal adoption"
         style={{
           height: window.innerHeight,
-          marginTop: 100,
         }}
       >
         <div className="row">
@@ -155,7 +154,7 @@ export default class Animal extends React.Component {
             <svg ref={this.svgRef}></svg>
           </div>
           <div className="col-md-4">
-            <h5 className="font-weight-bold">Animal Adoption Change</h5>
+            <h1 className="font-weight-bold">Animal Adoption Change</h1>
             <div className="btn-group btn-group-sm btn-group-toggle d-flex">
               <button
                 type="button"
@@ -199,10 +198,22 @@ export default class Animal extends React.Component {
               shelter. Was it truly having more adoptions? or was it just
               because the available pets were adopted a lot faster than before
               so that it created an illusion that more pets were adopted?
+              <br />
+              <br />
+              During the pandemic burst in 2020, we see more and more pets being
+              adopted. One would find it was very hard to adopt a pet from a
+              shelter. Was it truly having more adoptions? or was it just
+              because the available pets were adopted a lot faster than before
+              so that it created an illusion that more pets were adopted? During
+              the pandemic burst in 2020, we see more and more pets being
+              adopted. One would find it was very hard to adopt a pet from a
+              shelter. Was it truly having more adoptions? or was it just
+              because the available pets were adopted a lot faster than before
+              so that it created an illusion that more pets were adopted?
             </p>
             <br />
             <br />
-            <div className="text-center"> The answer is latter</div>
+            <h4 className="text-center"> The answer is latter</h4>
           </div>
         </div>
       </div>

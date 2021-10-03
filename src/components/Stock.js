@@ -1,3 +1,6 @@
+/*
+ref: http://bl.ocks.org/WillTurman/4631136
+*/
 import React from "react";
 import * as d3 from "d3";
 import fs from "fs";
@@ -38,6 +41,7 @@ export default class Stock extends React.Component {
     });
 
     this.data = [];
+    this.date = [];
   }
 
   componentDidMount = async () => {
@@ -48,6 +52,14 @@ export default class Stock extends React.Component {
   setupData = async () => {
     await this.collectData();
     this.groupData();
+    this.collectDate();
+  };
+
+  collectDate = () => {
+    this.data.forEach((d) => this.date.push(d.Date));
+    console.log(this.date);
+    let idx = d3.bisect(this.date, new Date("03/04/2020"));
+    console.log(idx);
   };
 
   collectData = async () => {
@@ -65,9 +77,9 @@ export default class Stock extends React.Component {
           [nameStr]: priceNum,
         };
       });
-      rawData = rawData.filter(
-        (d) => d.Date.getFullYear() === 2020 && d.Date.getDate() % 3 === 0 // % 3 to smooth out data
-      );
+      rawData = rawData.filter((d) => {
+        return d.Date.getFullYear() === 2020 && d.Date.getDate() % 3 === 0; // % 3 to smooth out data
+      });
       this.data.push(rawData);
     }
   };
@@ -101,11 +113,10 @@ export default class Stock extends React.Component {
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
     // scale
-    console.log(this.data[this.data.length - 1].Date);
     const xScale = d3
       .scaleTime()
       .domain([new Date(2020, 0, 1), new Date(2020, 12, 1)])
-      .range([0, this.width])
+      .range([0, this.innerWidth])
       .nice();
     const yScale = d3.scaleLinear().domain([0, 4000]).range([0, 300]);
     const colorScale = d3.scaleOrdinal().domain(this.companyList).range([
@@ -148,17 +159,14 @@ export default class Stock extends React.Component {
       .y1((d) => yScale(d[1]))
       .curve(d3.curveBasis);
 
-    const vertical = svg
-      .append("div")
-      .attr("class", "remove")
+    const vertical = d3
+      .select("#vertical")
       .style("position", "absolute")
-      .style("z-index", "19")
+      .style("z-index", 20)
       .style("width", "1px")
-      .style("height", "380px")
-      .style("top", "100px")
-      .style("bottom", "2000px")
-      .style("left", "100px")
-      .style("background", "#fff");
+      .style("height", `${this.height - this.margin.bottom}px`)
+      .style("background", "#fff")
+      .style("visibility", "hidden");
 
     g.selectAll("path")
       .data(stackedSeries)
@@ -173,10 +181,30 @@ export default class Stock extends React.Component {
       .call(xAxis);
     xAisG.select(".domain").remove();
 
+    this.handleMouseMove = (event, curDatum) => {
+      const [x, y] = d3.pointer(event);
+      svg.selectAll("#tooltip").remove();
+
+      const curDate = xScale.invert(x);
+      let idx = d3.bisect(this.date, curDate);
+      // const idx = bisectDate(curDatum, curDate);
+      const text = svg.append("text");
+      text
+        .attr("x", x)
+        .attr("y", y)
+        .attr("id", "tooltip")
+        .style("fill", "white")
+        .style("font-weight", "bold")
+        .style("font-size", "20px")
+        .text(curDatum.key + " " + curDate + " " + idx);
+
+      vertical.style("left", `${x + 10}px`).style("visibility", "visible");
+    };
+
     g.selectAll("path")
       .attr("opacity", 1)
       .on("mouseenter", handleMouseEnter)
-      .on("mousemove", handleMouseMove)
+      .on("mousemove", this.handleMouseMove)
       .on("mouseleave", handleMouseLeave);
 
     // helper functions
@@ -195,28 +223,13 @@ export default class Stock extends React.Component {
         .transition()
         .duration(0)
         .attr("opacity", (d, idx) => (idx != curIdx ? 0.2 : 1));
-
-      vertical.style("left", x + "px");
-    }
-
-    function handleMouseMove(event, curDatum) {
-      const [x, y] = d3.pointer(event);
-      console.log(curDatum);
-      svg.selectAll("#tooltip").remove();
-      const text = svg.append("text");
-      text
-        .attr("x", x)
-        .attr("y", y)
-        .attr("id", "tooltip")
-        .style("fill", "white")
-        .text(curDatum.key);
-
-      vertical.style("left", x + "px");
     }
 
     function handleMouseLeave(event, curDatum) {
       g.selectAll("path").transition().duration(250).attr("opacity", 1);
       svg.selectAll("#tooltip").remove();
+
+      vertical.style("visibility", "hidden");
     }
   };
 
@@ -242,6 +255,7 @@ export default class Stock extends React.Component {
         </div>
         <div className="row row-full">
           <div className="col">
+            <div id="vertical"></div>
             <svg ref={this.svgRef}></svg>
           </div>
         </div>
