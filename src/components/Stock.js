@@ -3,7 +3,6 @@ ref: http://bl.ocks.org/WillTurman/4631136
 */
 import React from "react";
 import * as d3 from "d3";
-import fs from "fs";
 
 export default class Stock extends React.Component {
   constructor(props) {
@@ -56,10 +55,7 @@ export default class Stock extends React.Component {
   };
 
   collectDate = () => {
-    this.data.forEach((d) => this.date.push(d.Date));
-    console.log(this.date);
-    let idx = d3.bisect(this.date, new Date("03/04/2020"));
-    console.log(idx);
+    this.data.forEach((d) => this.date.push({ Date: d.Date }));
   };
 
   collectData = async () => {
@@ -77,6 +73,7 @@ export default class Stock extends React.Component {
           [nameStr]: priceNum,
         };
       });
+      rawData.reverse(); // reverse date order
       rawData = rawData.filter((d) => {
         return d.Date.getFullYear() === 2020 && d.Date.getDate() % 3 === 0; // % 3 to smooth out data
       });
@@ -110,7 +107,10 @@ export default class Stock extends React.Component {
     svg.attr("width", this.width).attr("height", this.height);
     const g = svg
       .append("g")
-      .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+      .attr(
+        "transform",
+        `translate(${this.margin.left}, ${this.margin.top + 100})`
+      );
 
     // scale
     const xScale = d3
@@ -177,7 +177,7 @@ export default class Stock extends React.Component {
     const xAisG = g
       .append("g")
       .attr("class", "xAxis")
-      .attr("transform", `translate(0, ${this.innerHeight})`)
+      .attr("transform", `translate(0, ${this.innerHeight - 100})`)
       .call(xAxis);
     xAisG.select(".domain").remove();
 
@@ -185,18 +185,21 @@ export default class Stock extends React.Component {
       const [x, y] = d3.pointer(event);
       svg.selectAll("#tooltip").remove();
 
+      const bisect = d3.bisector((d) => d.Date);
       const curDate = xScale.invert(x);
-      let idx = d3.bisect(this.date, curDate);
-      // const idx = bisectDate(curDatum, curDate);
-      const text = svg.append("text");
-      text
+      const curIdx = bisect.center(this.date, curDate);
+      const curFirm = curDatum.key;
+      const value = this.data[curIdx][curFirm];
+
+      svg
+        .append("text")
         .attr("x", x)
-        .attr("y", y)
+        .attr("y", y + 100)
         .attr("id", "tooltip")
         .style("fill", "white")
         .style("font-weight", "bold")
         .style("font-size", "20px")
-        .text(curDatum.key + " " + curDate + " " + idx);
+        .text(`${curFirm} $${value}`);
 
       vertical.style("left", `${x + 10}px`).style("visibility", "visible");
     };
@@ -208,21 +211,20 @@ export default class Stock extends React.Component {
       .on("mouseleave", handleMouseLeave);
 
     // helper functions
-    function stackMax(layers) {
-      return d3.max(layers, (d) => d[1]);
-    }
+    // function stackMax(layers) {
+    //   return d3.max(layers, (d) => d[1]);
+    // }
 
-    function stackMin(layers) {
-      return d3.min(layers, (d) => d[0]);
-    }
+    // function stackMin(layers) {
+    //   return d3.min(layers, (d) => d[0]);
+    // }
 
     function handleMouseEnter(event, curDatum) {
-      const [x, y] = d3.pointer(event);
       let curIdx = curDatum.index;
       g.selectAll("path")
         .transition()
         .duration(0)
-        .attr("opacity", (d, idx) => (idx != curIdx ? 0.2 : 1));
+        .attr("opacity", (d, idx) => (idx !== curIdx ? 0.2 : 1));
     }
 
     function handleMouseLeave(event, curDatum) {
