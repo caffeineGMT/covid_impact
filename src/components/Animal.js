@@ -6,21 +6,21 @@ export default class Animal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      dataPath: `./data/national_shelter_count_all.csv`,
+      dataPath: `./data/animal/national_shelter_count_all.csv`,
       data: [],
     };
 
     this.svgRef = React.createRef();
     this.width = 800;
-    this.height = 400;
-    this.margin = { top: 60, right: 40, bottom: 88, left: 105 };
+    this.height = 450;
+    this.margin = { top: 60, right: 40, bottom: 90, left: 100 };
+
     this.line = null;
     this.lineGenerator = null;
   }
 
   componentDidMount = () => {
     const svg = d3.select(this.svgRef.current);
-    svg.selectAll("*").remove();
     svg.attr("width", this.width).attr("height", this.height);
 
     fetchAndParse(this.state.dataPath, this.parseData).then((data) => {
@@ -40,20 +40,13 @@ export default class Animal extends React.Component {
     });
   };
 
-  handleYearChange = (year) => {
-    if (!year) {
-      console.log("this is all");
-      // const sumStats = d3.group(this.state.data, (d) => d.Year);
-      // console.log(sumStats);
-      // this.updateSVG(sumStats);
-      return;
-    }
-    const filteredData = this.state.data.filter((d) => d.Year === year);
-    this.updateSVG(filteredData);
-  };
-
-  updateSVG = (data) => {
-    this.line.transition().duration(1000).attr("d", this.lineGenerator(data));
+  handleYearChange = (selectedYear) => {
+    const selectedData = this.state.data.filter((d) => d.Year === selectedYear);
+    this.line
+      .transition()
+      .duration(1000)
+      .attr("d", this.lineGenerator(selectedData))
+      .style("stroke", this.colorScale(selectedYear));
   };
 
   drawSVG = (data, svg) => {
@@ -69,7 +62,7 @@ export default class Animal extends React.Component {
     const innerWidth = this.width - this.margin.left - this.margin.right;
     const innerHeight = this.height - this.margin.top - this.margin.bottom;
 
-    // x-scale and y-scale
+    // scales
     const months = this.state.data.map((d) => d.Month);
     const xScale = d3
       .scaleOrdinal()
@@ -81,15 +74,20 @@ export default class Animal extends React.Component {
           return arr;
         })()
       );
-
     const yScale = d3
       .scaleLinear()
       .domain([0, 400000])
       .range([innerHeight, 0])
       .nice();
+    this.colorScale = d3.scaleOrdinal().domain([2017, 2018, 2019, 2020]).range([
+      "#FCECDD", // blue-green
+      "#FFC288", // dark pink
+      "#FEA82F", // light blue
+      "#FF6701", // light purple
+    ]);
 
     // transformation
-    const g = svg
+    this.g = svg
       .append("g")
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
@@ -98,7 +96,7 @@ export default class Animal extends React.Component {
     const yAxis = d3.axisLeft(yScale).tickSize(-innerWidth).tickPadding(15);
 
     // xAxis and yAxis
-    const xAisG = g
+    const xAisG = this.g
       .append("g")
       .call(xAxis)
       .attr("transform", `translate(0, ${innerHeight})`);
@@ -106,45 +104,95 @@ export default class Animal extends React.Component {
     xAisG
       .append("text")
       .attr("class", "bg-primary")
-      .attr("y", 50)
+      .attr("y", 60)
       .attr("x", innerWidth / 2)
-      .attr("fill", "white")
+      .attr("fill", "#d8d8d8")
+      .style("font-size", "15px")
       .text(xAxisLabel);
 
-    const yAxisG = g.append("g").call(yAxis);
+    const yAxisG = this.g.append("g").call(yAxis);
     yAxisG.selectAll(".domain").remove();
     yAxisG
       .append("text")
       .attr("class", "bg-primary")
       .attr("y", -70)
       .attr("x", -innerHeight / 2)
-      .attr("fill", "white")
+      .attr("fill", "#d8d8d8")
       .attr("transform", `rotate(-90)`)
       .attr("text-anchor", "middle")
+      .style("font-size", "15px")
       .text(yAxisLabel);
 
     // drawing line
-    const lineGenerator = d3
+    this.lineGenerator = d3
       .line()
       .x((d) => xScale(xValue(d)))
       .y((d) => yScale(yValue(d)))
       .curve(d3.curveNatural);
 
-    const line = g
+    for (let year = 2017; year <= 2020; year++) {
+      const temp = this.state.data.filter((d) => d.Year === year);
+      this.g
+        .append("path")
+        .attr("class", "line-path")
+        .attr("id", `${year}`)
+        .style("stroke", this.colorScale(year))
+        .style("opacity", 0.3)
+        .style("stroke-width", 2)
+        .attr("d", this.lineGenerator(temp));
+    }
+
+    this.handleMouseEnter = () => {
+      focus.style("opacity", 1);
+      focusText.style("opacity", 1);
+    };
+
+    this.handleMouseMove = (event, curDatum) => {
+      const [x, y] = d3.pointer(event);
+      console.log(curDatum);
+      focus.attr("cx", xScale(x)).attr("cy", yScale(y));
+    };
+
+    this.handleMouseLeave = () => {
+      focus.style("opacity", 0);
+      focusText.style("opacity", 0);
+    };
+
+    console.log(data);
+    const line = this.g
       .append("path")
-      .attr("class", "line-path")
-      .attr("d", lineGenerator(data));
+      // .data(data[0])
+      .attr("class", "line-path highlight")
+      .attr("id", `${data[0].Year}`)
+      .attr("d", this.lineGenerator(data))
+      .style("stroke", this.colorScale(data[0].Year))
+      .style("stroke-width", 3)
+      .on("mouseenter", this.handleMouseEnter)
+      .on("mousemove", this.handleMouseMove)
+      .on("mouseleave", this.handleMouseLeave);
+
+    const focus = this.g
+      .append("circle")
+      .attr("r", 8)
+      .style("opacity", 0)
+      .style("fill", "none")
+      .style("stroke", "white");
+
+    const focusText = this.g
+      .append("text")
+      .style("opacity", 0)
+      .style("text-anchor", "left")
+      .style("alignment-baseline", "middle");
 
     // hold a ref to these so that we only update line when new data kicks in
     this.line = line;
-    this.lineGenerator = lineGenerator;
   };
 
   render() {
     return (
       <div
-        className="container-fluid d-flex align-items-center"
-        id="animal adoption"
+        className="animal container-fluid d-flex align-items-center"
+        id="animal"
         style={{
           height: window.innerHeight,
         }}
@@ -153,16 +201,9 @@ export default class Animal extends React.Component {
           <div className="col-md-7">
             <svg ref={this.svgRef}></svg>
           </div>
-          <div className="col-md-4">
-            <h1 className="font-weight-bold">Animal Adoption Change</h1>
+          <div className="col-md-4" style={{ marginLeft: 50 }}>
+            <h1>Animal Adoption</h1>
             <div className="btn-group btn-group-sm btn-group-toggle d-flex">
-              <button
-                type="button"
-                className="btn btn-outline-light"
-                onClick={() => this.handleYearChange()}
-              >
-                All
-              </button>
               <button
                 type="button"
                 className="btn btn-outline-light"

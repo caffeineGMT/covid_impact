@@ -7,6 +7,11 @@ html, body{
   scroll-behavior: smooth;
 }
 
+.container-fluid {
+  padding-left: 100px;
+  padding-right: 100px;
+}
+
 /* Home */
 #home h1 {
   font-size: 50px;
@@ -90,33 +95,29 @@ html, body{
 }
 
 /* Animal */
-path.line-path {
+#animal {
+  margin-top: 50px;
+}
+
+#animal h1 {
+  font-size: 4em;
+}
+
+#animal .line-path {
   fill: none;
-  stroke:rgb(223, 150, 42);
-  stroke-width: 2;
   stroke-linejoin: round;
 }
 
-.animal line {
+#animal line {
   fill: none;
   stroke:#d8d8d8;
-  opacity: 0.1;
-}
-
-.container-fluid {
-  padding-left: 100px;
-  padding-right: 100px;
-}
-
-.section {
-  height: 900;
-  display: flex;
-  align-items: center;
+  stroke-dasharray: 5, 3;
+  opacity: 0.2;
 }
 
 /* Stock */
 #stock {
-  margin-top: 400px;
+  margin-top: 100px;
 }
 
 /* https://coderwall.com/p/hkgamw/creating-full-width-100-container-inside-fixed-width-container */

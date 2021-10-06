@@ -40,7 +40,7 @@ export default class VerticalNav extends React.Component {
             </a>
           </li>
           <li>
-            <a href="#animal adoption">
+            <a href="#animal">
               <span className="cd-dot"></span>
               <span className="cd-label">Animal Adoption</span>
             </a>
