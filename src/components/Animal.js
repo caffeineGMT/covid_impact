@@ -34,7 +34,7 @@ export default class Animal extends React.Component {
     return data.map((d) => {
       return {
         Year: +d.Year,
-        Month: d.Month,
+        Month: +d.Month,
         LiveOutcome: +d.LiveOutcome,
       };
     });
@@ -55,7 +55,6 @@ export default class Animal extends React.Component {
     const xAxisLabel = "Month";
 
     const yValue = (d) => d.LiveOutcome;
-    const circleRadius = 6;
     const yAxisLabel = "Adoption Count";
 
     // frame
@@ -63,22 +62,22 @@ export default class Animal extends React.Component {
     const innerHeight = this.height - this.margin.top - this.margin.bottom;
 
     // scales
-    const months = this.state.data.map((d) => d.Month);
-    const xScale = d3
-      .scaleOrdinal()
-      .domain(months)
-      .range(
-        (() => {
-          let arr = [];
-          for (let i = 0; i < 12; i++) arr.push(i * 60);
-          return arr;
-        })()
-      );
+    // const months = this.state.data.map((d) => d.Date.getMonth());
+    const xScale = d3.scaleLinear().domain([1, 12]).range(
+      // (() => {
+      //   let arr = [];
+      //   for (let i = 0; i < 12; i++) arr.push(i * 60);
+      //   return arr;
+      // })()
+      [0, innerWidth]
+    );
+
     const yScale = d3
       .scaleLinear()
       .domain([0, 400000])
       .range([innerHeight, 0])
       .nice();
+
     this.colorScale = d3.scaleOrdinal().domain([2017, 2018, 2019, 2020]).range([
       "#FCECDD", // blue-green
       "#FFC288", // dark pink
@@ -123,6 +122,7 @@ export default class Animal extends React.Component {
       .style("font-size", "15px")
       .text(yAxisLabel);
 
+    console.log(xScale(11));
     // drawing line
     this.lineGenerator = d3
       .line()
@@ -143,25 +143,34 @@ export default class Animal extends React.Component {
     }
 
     this.handleMouseEnter = () => {
-      focus.style("opacity", 1);
+      focus.style("visibility", "visible");
       focusText.style("opacity", 1);
     };
 
     this.handleMouseMove = (event, curDatum) => {
       const [x, y] = d3.pointer(event);
-      console.log(curDatum);
-      focus.attr("cx", xScale(x)).attr("cy", yScale(y));
+      const nx = xScale.invert(x);
+      const ny = yScale.invert(y);
+      focus.style("opacity", 1).attr("cx", xScale(nx)).attr("cy", yScale(ny));
+      focusText
+        .text(`Count: ${Math.floor(ny)}`)
+        .attr("x", xScale(nx) + 30)
+        .attr("y", yScale(ny))
+        .style("stroke", "white");
     };
 
     this.handleMouseLeave = () => {
-      focus.style("opacity", 0);
+      focus.style("visibility", "hidden");
       focusText.style("opacity", 0);
     };
 
-    console.log(data);
+    // this.g
+    //   .on("mouseenter", this.handleMouseEnter)
+    //   .on("mousemove", this.handleMouseMove)
+    //   .on("mouseleave", this.handleMouseLeave);
+
     const line = this.g
       .append("path")
-      // .data(data[0])
       .attr("class", "line-path highlight")
       .attr("id", `${data[0].Year}`)
       .attr("d", this.lineGenerator(data))
@@ -173,8 +182,8 @@ export default class Animal extends React.Component {
 
     const focus = this.g
       .append("circle")
-      .attr("r", 8)
-      .style("opacity", 0)
+      .attr("r", 10)
+      .style("visibility", "hidden")
       .style("fill", "none")
       .style("stroke", "white");
 
