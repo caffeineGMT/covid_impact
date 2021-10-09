@@ -23,7 +23,7 @@ export default class Home extends React.Component {
           }}
         >
           <div className="row">
-            <div className="col-md-12">
+            <div className="col-12">
               <h1>Issues with Tissues</h1>
               <p>
                 The COVID-19 pandemic and resulting economic crisis had an

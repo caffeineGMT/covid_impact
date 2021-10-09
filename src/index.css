@@ -8,11 +8,17 @@ html, body{
 }
 
 .container-fluid {
+  margin-top: 15vh;
+  margin-bottom: 15vh;
   padding-left: 100px;
   padding-right: 100px;
 }
 
 /* Home */
+#home {
+  margin-top: 0;
+}
+
 #home h1 {
   font-size: 50px;
   font-weight: bold;
@@ -132,6 +138,10 @@ html, body{
 #stock h1 {
   font-size: 4em;
   text-align: left
+}
+
+#stock text {
+  font-size: 0.5vw
 }
 
 /* CO2 */

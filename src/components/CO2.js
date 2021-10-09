@@ -4,6 +4,7 @@ https://bl.ocks.org/Andrew-Reid/aa5d4329d7e85075391e003c09c8283d
 https://stackoverflow.com/questions/54344073/how-to-achieve-disc-shape-in-d3-force-simulation
 https://www.theguardian.com/us-news/ng-interactive/2017/dec/20/bussed-out-america-moves-homeless-people-country-studys
 */
+
 import React from "react";
 import * as d3 from "d3";
 
@@ -13,18 +14,18 @@ export default class CO2 extends React.Component {
     this.state = {};
 
     this.canvasRef = React.createRef();
-    this.width = 1300;
-    this.height = 600;
+    this.width = (window.innerWidth * 3) / 4;
+    this.height = window.innerWidth / 3;
     this.context = null;
 
     this.nodes = [];
     this.strength = -0.25; // default repulsion
     this.centeringStrength = 0.01; // power of centering force for two clusters
     this.velocityDecay = 0.15; // velocity decay: higher value, less overshooting
-    this.outerRadius = 300; // new nodes within this radius
-    this.innerRadius = 100; // new nodes outside this radius, initial nodes within.
-    this.start = [this.width / 4 + 50, this.height / 2 + 10]; // new nodes/initial nodes center point
-    this.end = [this.width * (3 / 4) + 150, this.height / 2]; // destination center
+    this.outerRadius = this.height / 2; // new nodes within this radius
+    this.innerRadius = (1 / 3) * this.outerRadius; // new nodes outside this radius, initial nodes within.
+    this.start = [this.width / 4, this.height / 2]; // new nodes/initial nodes center point
+    this.end = [this.width * (3 / 4), this.height / 2]; // destination center
     this.n = 1000; // number of initial nodes
     this.cycles = 100; // number of ticks before stopping.
     this.tick = 0;
@@ -127,22 +128,23 @@ export default class CO2 extends React.Component {
   };
 
   handleClick = () => {
-    console.log("clicked");
     this.draw();
   };
 
   render() {
     return (
       <div
-        className="co2 container-fluid d-flex align-items-center"
+        className="co2 container-fluid d-flex align-items-center "
         id="co2"
         style={{
           height: window.innerHeight,
         }}
       >
         <div className="row">
-          <div className="col-md-3">
+          <div className="col-12">
             <h1 className="">CO2 change</h1>
+          </div>
+          <div className="col-4">
             <p className="text-justify">
               The COVID-19 pandemic and resulting economic crisis had an impact
               on almost every aspect of how energy is produced, supplied, and
@@ -173,7 +175,17 @@ export default class CO2 extends React.Component {
               particular, solar PV and wind, reached their highest ever annual
               share of the global energy mix, increasing it by more than one
               percentage point to over 20%.
+              <br />
+              <br />
+              The drop in road transport activity accounted for 50% of the
+              decline in global oil demand, and the slump in the aviation sector
+              for around 35%. Meanwhile, low-carbon fuels and technologies, in
+              particular, solar PV and wind, reached their highest ever annual
+              share of the global energy mix, increasing it by more than one
+              percentage point to over 20%.
             </p>
+            <br />
+            <br />
             <button
               type="button"
               className="btn btn-outline-light"
@@ -182,8 +194,30 @@ export default class CO2 extends React.Component {
               play / replay
             </button>
           </div>
-          <div className="col-md-9">
-            <canvas ref={this.canvasRef}></canvas>
+          <div className="col-8">
+            <div className="row">
+              <div className="col-12 d-flex align-items-center justify-content-center">
+                <span
+                  style={{
+                    height: 15,
+                    width: 15,
+                    backgroundColor: "orange",
+                    borderRadius: "50%",
+                    display: "inline-block",
+                  }}
+                ></span>
+                <span>
+                  &nbsp; &nbsp; &nbsp;if one dot is representing 3 tons of CO2
+                </span>
+              </div>
+              <canvas className="col-12" ref={this.canvasRef}></canvas>
+              <div className="col-6">
+                <h5 className="mx-auto">CO2 emissions in 2019</h5>
+              </div>
+              <div className="col-6">
+                <h5 className="mx-auto">CO2 emissions decreased in 2020</h5>
+              </div>
+            </div>
           </div>
         </div>
       </div>

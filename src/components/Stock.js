@@ -245,7 +245,7 @@ export default class Stock extends React.Component {
         }}
       >
         <div className="row">
-          <div className="col-md-3">
+          <div className="col-3">
             <h1>Stock</h1>
             <p className="text-justify">
               The COVID-19 pandemic and resulting economic crisis had an impact

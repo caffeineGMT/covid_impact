@@ -6,6 +6,7 @@ import CO2 from "./components/CO2";
 import Introduction from "./components/Introduction";
 import Stock from "./components/Stock";
 import ToiletPaper from "./components/ToiletPaper";
+import Traffic from "./components/Traffic";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
       <Stock />
       <Animal />
       <CO2 />
+      {/* <Traffic /> */}
     </div>
   );
 }

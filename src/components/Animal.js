@@ -11,8 +11,9 @@ export default class Animal extends React.Component {
     };
 
     this.svgRef = React.createRef();
-    this.width = 800;
-    this.height = 450;
+    this.width = window.innerWidth / 2;
+    this.height = window.innerHeight / 2;
+    console.log(this.height);
     this.margin = { top: 60, right: 40, bottom: 90, left: 100 };
 
     this.line = null;
@@ -207,10 +208,10 @@ export default class Animal extends React.Component {
         }}
       >
         <div className="row">
-          <div className="col-md-7">
+          <div className="col-7">
             <svg ref={this.svgRef}></svg>
           </div>
-          <div className="col-md-4" style={{ marginLeft: 50 }}>
+          <div className="col-5">
             <h1>Animal Adoption</h1>
             <div className="btn-group btn-group-sm btn-group-toggle d-flex">
               <button
