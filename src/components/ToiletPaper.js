@@ -10,14 +10,14 @@ import * as d3Collection from "d3-collection";
 import Scroller from "../utils/Scroller";
 
 export default class ToiletPaper extends React.Component {
-  width = 600;
-  height = 600;
-  margin = { top: 20, left: 20, bottom: 20, right: 20 };
+  width = window.innerWidth / 3;
+  height = this.width;
+  margin = { top: 10, left: 10, bottom: 10, right: 10 };
   lastIndex = -1;
   activeIndex = 0;
 
-  squareSize = 6;
-  squarePad = 2;
+  squareSize = window.innerWidth / 198;
+  squarePad = this.squareSize;
   numPerRow = this.width / (this.squareSize + this.squarePad);
 
   svg = null;
@@ -26,6 +26,20 @@ export default class ToiletPaper extends React.Component {
 
   activateFunctions = [];
   updateFunctions = [];
+
+  // data: https://www.statista.com/chart/15676/cmo-toilet-paper-consumption/
+  rollsRaw = [
+    { Country: "US", Rolls: 141 },
+    { Country: "Germany", Rolls: 134 },
+    { Country: "UK", Rolls: 127 },
+    { Country: "Japan", Rolls: 91 },
+    { Country: "Australia", Rolls: 88 },
+    { Country: "Spain", Rolls: 81 },
+    { Country: "France", Rolls: 71 },
+    { Country: "Italy", Rolls: 70 },
+    { Country: "China", Rolls: 49 },
+    { Country: "Brazil", Rolls: 38 },
+  ];
 
   constructor(props) {
     super(props);
@@ -48,7 +62,9 @@ export default class ToiletPaper extends React.Component {
     this.setupData(rawData);
 
     this.setupVis(d3.select("#vis"));
-    this.setupOthers();
+    this.setupOverallIncrease();
+    this.setupInvention();
+    this.setupGrid();
     this.setupBarChart();
     this.setupHistogram();
 
@@ -59,6 +75,7 @@ export default class ToiletPaper extends React.Component {
   setupData = (rawData) => {
     this.wordData = this.getWords(rawData);
     this.fillerWords = this.getFillerWords(this.wordData);
+    this.generateRolls();
   };
 
   /**
@@ -77,80 +94,111 @@ export default class ToiletPaper extends React.Component {
       .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
   };
 
-  setupOthers = () => {
-    //openVis title
+  setupOverallIncrease = () => {
     this.g
       .append("text")
-      .attr("class", "title openvis-title")
+      .attr("class", "title tp-overall-increase highlight")
       .attr("x", this.width / 2)
       .attr("y", this.height / 3)
-      .text("2013");
+      .text("40%");
     this.g
       .append("text")
-      .attr("class", "sub-title openvis-title")
+      .attr("class", "sub-title tp-overall-increase")
       .attr("x", this.width / 2)
       .attr("y", this.height / 3 + this.height / 5)
-      .text("OpenVis Conf");
-    this.g.selectAll(".openvis-title").attr("opacity", 0);
+      .text("Overall Increase")
+      .style("fill", "#fff");
+    this.g.selectAll(".tp-overall-increase").attr("opacity", 0);
+  };
 
-    // count filler word count title
+  setupInvention = () => {
     this.g
-      .append("text")
-      .attr("class", "title count-title highlight")
-      .attr("x", this.width / 2)
-      .attr("y", this.height / 3)
-      .text("180");
-    this.g
-      .append("text")
-      .attr("class", "sub-title count-title")
-      .attr("x", this.width / 2)
-      .attr("y", this.height / 3 + this.height / 5)
-      .text("Filler Words");
-    this.g.selectAll(".count-title").attr("opacity", 0);
+      .append("image")
+      .attr("class", "tp-invention-img")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("width", this.width)
+      .attr("height", this.height)
+      .attr("xlink:href", "./image/toilet_paper_invention.jpg")
+      .attr("opacity", 0);
+  };
 
-    // square grid
-    let squares = this.g
-      .selectAll(".square")
-      .data(this.wordData, (d) => d.word);
+  setupGrid = () => {
+    const countryList = [
+      "US",
+      "Germany",
+      "UK",
+      "Japan",
+      "Australia",
+      "Spain",
+      "France",
+      "Italy",
+      "China",
+      "Brazil",
+    ];
+
+    this.colorScale = d3.scaleOrdinal().domain(countryList).range([
+      // "#ab2668", // purple
+      "#ef3f5d", // light-red
+      "#00aaa9", // green-blue
+      // "#bfc0c2", // light-grey
+      "#fcf001", // light-yellow
+      // "#c2272d", // dark red
+      // "#c9da29", // blue-yellow
+      // "#03a7c1", // blue-green
+      // "#be1a8b", // dark pink
+      "#75d1f3", // light blue
+      // "#7f65aa", // light purple
+      // "#01aef0", // blue
+      "#ed0477", // pink
+      // "#5d2d91", // dark purple
+      // "#015aaa", // blue
+      "#84bc41", // light green
+      "#01954e", // green
+      "#ffc60e", // yellow
+      // "#94238e", // purple
+      "#ec6aa0", // light pink
+      // "#d71b32", // red
+      "#f69324", // orange
+    ]);
+
+    let squares = this.g.selectAll(".square").data(this.rollsProcessed);
     const squaresE = squares.enter().append("rect").classed("square", true);
     squares = squares
       .merge(squaresE)
       .attr("width", this.squareSize)
       .attr("height", this.squareSize)
-      .attr("fill", "#d8d8d8")
-      .classed("fill-square", (d) => d.filler)
+      .attr("fill", (d) => this.colorScale(d.Country))
       .attr("x", (d) => d.x)
       .attr("y", (d) => d.y)
+      .attr("opacity", 0)
+      .attr("transform", `translate(0, ${50})`);
+
+    const legend = this.g
+      .selectAll(".legend")
+      .data(countryList)
+      .enter()
+      .append("rect")
+      .classed("legend", true)
+      .attr("width", this.squareSize)
+      .attr("height", this.squareSize)
+      .attr("fill", (d) => this.colorScale(d))
+      .attr("x", (d, i) => i * this.squareSize * 6)
+      .attr("y", 0)
       .attr("opacity", 0);
 
-    // cough title
-    this.g
+    const legendText = this.g
+      .selectAll(".legend-text")
+      .data(countryList)
+      .enter()
       .append("text")
-      .attr("class", "sub-title cough cough-title")
-      .attr("x", this.width / 2)
-      .attr("y", 60)
-      .text("cough")
-      .attr("opacity", 0);
-    // arrowhead
-    this.svg
-      .append("defs")
-      .append("marker")
-      .attr("id", "arrowhead")
-      .attr("refY", 2)
-      .attr("markerWidth", 6)
-      .attr("markerHeight", 4)
-      .attr("orient", "auto")
-      .append("path")
-      .attr("d", "M 0,0 V 4 L6,2 Z");
-    this.g
-      .append("path")
-      .attr("class", "cough cough-arrow")
-      .attr("marker-end", "url(#arrowhead)")
-      .attr("d", () => {
-        let line = "M " + (this.width / 2 - 10) + " " + 80;
-        line += " l 0 " + 230;
-        return line;
-      })
+      .attr("class", "legend-text")
+      .text((d) => d)
+      .attr("x", (d, i) => i * this.squareSize * 6)
+      .attr("y", 0)
+      .attr("transform", `translate(0, ${this.squareSize + 15})`)
+      .style("font-size", 10)
+      .attr("fill", "white")
       .attr("opacity", 0);
   };
 
@@ -298,7 +346,7 @@ export default class ToiletPaper extends React.Component {
 
   setupSections = () => {
     this.activateFunctions[0] = this.showTitle;
-    this.activateFunctions[1] = this.showFillerTitle;
+    this.activateFunctions[1] = this.showInventionImg;
     this.activateFunctions[2] = this.showGrid;
     this.activateFunctions[3] = this.highlightGrid;
     this.activateFunctions[4] = this.showBar;
@@ -397,6 +445,24 @@ export default class ToiletPaper extends React.Component {
       .sort((a, b) => b.value - a.value);
   };
 
+  generateRolls = () => {
+    this.rollsProcessed = [];
+    this.rollsRaw.forEach((d, i) => {
+      for (let count = 0; count < d.Rolls; count++) {
+        this.rollsProcessed.push({
+          Country: d.Country,
+        });
+      }
+    });
+    this.rollsProcessed.map((d, i) => {
+      d.col = i % this.numPerRow;
+      d.row = Math.floor(i / this.numPerRow);
+      d.x = d.col * (this.squareSize + this.squarePad);
+      d.y = d.row * (this.squareSize + this.squarePad);
+      return d;
+    });
+  };
+
   //#endregion data func
 
   //#region activate func
@@ -408,13 +474,13 @@ export default class ToiletPaper extends React.Component {
    */
   showTitle = () => {
     this.g
-      .selectAll(".count-title")
+      .selectAll(".tp-invention-img")
       .transition()
       .duration(0)
       .attr("opacity", 0);
 
     this.g
-      .selectAll(".openvis-title")
+      .selectAll(".tp-overall-increase")
       .transition()
       .duration(600)
       .attr("opacity", 1.0);
@@ -425,17 +491,23 @@ export default class ToiletPaper extends React.Component {
    * hides: square grid
    * shows: filler count title
    */
-  showFillerTitle = () => {
+  showInventionImg = () => {
     this.g
-      .selectAll(".openvis-title")
+      .selectAll(".tp-overall-increase")
       .transition()
       .duration(0)
       .attr("opacity", 0);
 
     this.g.selectAll(".square").transition().duration(0).attr("opacity", 0);
+    this.g.selectAll(".legend").transition().duration(0).attr("opacity", 0);
+    this.g
+      .selectAll(".legend-text")
+      .transition()
+      .duration(0)
+      .attr("opacity", 0);
 
     this.g
-      .selectAll(".count-title")
+      .selectAll(".tp-invention-img")
       .transition()
       .duration(600)
       .attr("opacity", 1.0);
@@ -447,19 +519,28 @@ export default class ToiletPaper extends React.Component {
    * shows: square grid
    */
   showGrid = () => {
+    // hide before
     this.g
-      .selectAll(".count-title")
+      .selectAll(".tp-invention-img")
       .transition()
       .duration(0)
       .attr("opacity", 0);
 
+    // show cur
     this.g
       .selectAll(".square")
       .transition()
       .duration(600)
       .delay((d) => 5 * d.row)
-      .attr("opacity", 1.0)
-      .attr("fill", "#ddd");
+      .attr("fill", (d) => this.colorScale(d.Country))
+      .attr("opacity", 1.0);
+
+    this.g.selectAll(".legend").transition().duration(600).attr("opacity", 1);
+    this.g
+      .selectAll(".legend-text")
+      .transition()
+      .duration(600)
+      .attr("opacity", 1);
   };
 
   /**
@@ -474,27 +555,25 @@ export default class ToiletPaper extends React.Component {
     this.g.selectAll(".bar").transition().duration(600).attr("width", 0);
     this.g.selectAll(".bar-text").transition().duration(0).attr("opacity", 0);
 
+    this.g.selectAll(".square").transition().duration(0).attr("opacity", 1.0);
+    this.g.selectAll(".legend").transition().duration(0).attr("opacity", 1);
     this.g
-      .selectAll(".square")
+      .selectAll(".legend-text")
       .transition()
       .duration(0)
-      .attr("opacity", 1.0)
-      .attr("fill", "#ddd");
+      .attr("opacity", 1);
+
+    // .attr("fill", "#ddd");
 
     // use named transition to ensure move happens even if other transitions are interrupted.
     this.g
-      .selectAll(".fill-square")
+      .selectAll(".square")
       .transition("move-fills")
       .duration(800)
-      .attr("x", (d) => d.x)
-      .attr("y", (d) => d.y);
-
-    this.g
-      .selectAll(".fill-square")
-      .transition()
-      .duration(800)
       .attr("opacity", 1.0)
-      .attr("fill", (d) => (d.filler ? "orange" : "black"));
+      .attr("fill", (d) =>
+        d.Country === "US" ? this.colorScale("US") : "lightgrey"
+      );
   };
 
   /**
@@ -506,7 +585,13 @@ export default class ToiletPaper extends React.Component {
     // ensure bar axis is set
     this.showAxis(this.xAxisBar);
 
-    this.g.selectAll(".square").transition().duration(800).attr("opacity", 0);
+    this.g.selectAll(".square").transition().duration(0).attr("opacity", 0);
+    this.g.selectAll(".legend").transition().duration(0).attr("opacity", 0);
+    this.g
+      .selectAll(".legend-text")
+      .transition()
+      .duration(0)
+      .attr("opacity", 0);
 
     this.g
       .selectAll(".fill-square")
@@ -667,7 +752,6 @@ export default class ToiletPaper extends React.Component {
       .transition("cough")
       .duration(0)
       .style("fill", (d) => {
-        console.log(d.x0);
         return d.x0 >= 14 ? this.coughColorScale(progress) : "#008080";
       });
   };
@@ -681,59 +765,76 @@ export default class ToiletPaper extends React.Component {
           <div className="col">
             <div id="sections">
               <section className="step">
-                <div className="title">OpenVis Conf 2013</div>
-                I did what no presenter should ever do: I watched my own talk.
+                <div className="title">Issues With Tissues</div>
+                The COVID-19 pandemic has been associated with a worldwide
+                increase in toilet paper hoarding. Why do people hoard toilet
+                paper?
+              </section>
+              <section className="step">
+                <div className="title">Invention</div>
+                The origins of Toilet Paper can be dated back to 14th Century
+                China, where it was used by the Emperor and his family.
                 <br />
                 <br />
-                My first visit to OpenVis Conf in 2013.
+                In the 15th Century, paper became easier to produce, but the
+                19th Century is where it boomed thanks to mass production. A man
+                by the name of Joseph C. Gayetty created the first ever
+                commercial toilet paper - which were not in rolls, but arrived
+                as flat sheets sold in bulk Ever since the mass
+                commercialisation of toilet paper, new advances came into play
+                such as Walter Alcocks paper, which was perforated.
+                <br />
+                <br />
+                In other parts of the world, St. Andrew's Paper Mill in the UK
+                developed the first 2 ply toilet paper Toilet paper has been
+                developing ever since - until the 21st century, where finally
+                people it became a limited necessity due to hoarding across the
+                world.
               </section>
               <section className="step">
-                <div className="title">Filler Words</div>
-                As expected, I could only focus on the flaws: the rushed speech,
-                the odd phrases, and, most especially, all the filler words. In
-                fact, I found 180 filler words in my 30 minute talk.
+                <div className="title">The World</div>
+                If each square is one roll of toilet paper, this is the top 10
+                country rank on toile paper consumption.
               </section>
               <section className="step">
-                <div className="title">My Talk</div>
-                Here are all 5,040 words of my talk.
+                <div className="title">The US</div>
+                the US is taking a lead on toilet paper consumption with 91
+                rolls per capita.
               </section>
               <section className="step">
-                <div className="title">My Stumbles</div>
+                <div className="title">Length</div>I almost exclusively used
+                these three fillers. Um's and Ah's made up over 80%, with Uh's
+                trailing behind.
+              </section>
+
+              <section className="step">
+                <div className="title">Pre-COVID</div>
                 And here are all the fillers I used in those 30 minutes.
               </section>
               <section className="step">
-                <div className="title">Um's, Ah's &amp; Uh's</div>I almost
-                exclusively used these three fillers. Um's and Ah's made up over
-                80%, with Uh's trailing behind.
+                <div className="title">Panic Mode</div>I hoped that all these
+                blunders were toward the beginning of my talk. And the data
+                suggests that fewer fillers are used as I get into it. Perhaps
+                the talk started out rough and improved as I found my groove.
               </section>
               <section className="step">
-                <div className="title">Fillers Over Time</div>I hoped that all
-                these blunders were toward the beginning of my talk. And the
-                data suggests that fewer fillers are used as I get into it.
-                Perhaps the talk started out rough and improved as I found my
-                groove.
-              </section>
-              <section className="step">
-                <div className="title">Ramping Back Up</div>
+                <div className="title">How Much Toilet Paper Do You Need?</div>
                 Unfortunately, the trend does not continue. Midway into the talk
                 my Um's and Ah's spike. I continue to use them pretty
                 consistently throughout the rest of the talk.
               </section>
               <section className="step">
-                <div className="title">The Cough Effect</div>
-                My theory is that at this critical halfway point in my talk, I
-                heard a dry cough indicative of the audience's waning interest.
-                This caused self-confidence to collapse and forced me out of my
-                groove.
+                <div className="title">The Psychology Behind Panic Buying</div>
+                &middot; Guilt Avoidance: We buy too much because we don't want
+                to be the one that doesn't have what they need.
                 <br />
-                <br />A competing theory is that I just hadn't practiced the
-                last half of my speech as much.
-              </section>
-              <section className="step">
-                <div className="title">Best of Luck to Me in 2015</div>
-                The world may never know, or care, but hopefully these insights
-                improve my speaking in 2015. Though preliminary results aren't
-                looking so good.
+                <br />
+                &middot; Social Ques: Somebody else is buying a lot and it makes
+                them feel like they should do it, too.
+                <br />
+                <br />
+                &middot; Anxiety: They can't solve the virus, so this is
+                something they can do. They can control their shopping.
               </section>
             </div>
           </div>

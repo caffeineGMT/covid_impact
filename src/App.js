@@ -7,6 +7,7 @@ import Introduction from "./components/Introduction";
 import Stock from "./components/Stock";
 import ToiletPaper from "./components/ToiletPaper";
 import Traffic from "./components/Traffic";
+import Reflection from "./components/Reflection";
 
 export default function App() {
   return (
@@ -18,7 +19,7 @@ export default function App() {
       <Stock />
       <Animal />
       <CO2 />
-      {/* <Traffic /> */}
+      <Reflection />
     </div>
   );
 }

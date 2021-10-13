@@ -13,6 +13,7 @@ export default class Stock extends React.Component {
     this.margin = { top: 30, right: 0, bottom: 30, left: 0 };
     this.width = window.innerWidth;
     this.height = 680;
+    console.log(this.width);
     this.innerWidth = this.width - this.margin.left - this.margin.right;
     this.innerHeight = this.height - this.margin.top - this.margin.bottom;
 
