@@ -175,14 +175,6 @@ export default class CO2 extends React.Component {
               particular, solar PV and wind, reached their highest ever annual
               share of the global energy mix, increasing it by more than one
               percentage point to over 20%.
-              <br />
-              <br />
-              The drop in road transport activity accounted for 50% of the
-              decline in global oil demand, and the slump in the aviation sector
-              for around 35%. Meanwhile, low-carbon fuels and technologies, in
-              particular, solar PV and wind, reached their highest ever annual
-              share of the global energy mix, increasing it by more than one
-              percentage point to over 20%.
             </p>
             <br />
             <br />

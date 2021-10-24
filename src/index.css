@@ -75,7 +75,7 @@ html, body{
 
 .stick {
   position: fixed;
-  top: 20%;
+  top: 150px;
 }
 
 #vis .title {

@@ -22,7 +22,6 @@ export default class ToiletPaper extends React.Component {
 
   svg = null;
   g = null;
-  colors = { 0: "#84bc41", 1: "#fcf001", 2: "#75d1f3" };
 
   activateFunctions = [];
   updateFunctions = [];
@@ -203,70 +202,54 @@ export default class ToiletPaper extends React.Component {
   };
 
   setupBarChart = () => {
-    const fillerCounts = this.groupByWord(this.fillerWords);
-    const countMax = d3.max(fillerCounts, (d) => d.value);
-
-    this.xBarScale = d3
-      .scaleLinear()
-      .domain([0, countMax])
-      .range([0, this.width]);
-    this.yBarScale = d3
-      .scaleBand()
-      .paddingInner(0.08)
-      .domain([0, 1, 2])
-      .range([0, this.height - 50], 0.1, 0.1);
-    this.xAxisBar = d3.axisBottom().scale(this.xBarScale);
-
-    this.g
-      .append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + this.height + ")")
-      .call(this.xAxisBar);
-    this.g.select(".x.axis").style("opacity", 0);
-
-    let bars = this.g.selectAll(".bar").data(fillerCounts);
-    const barsE = bars.enter().append("rect").attr("class", "bar");
-    bars = bars
-      .merge(barsE)
-      .attr("x", 0)
-      .attr("y", (d, i) => this.yBarScale(i))
-      .attr("fill", (d, i) => this.colors[i])
-      .attr("width", 0)
-      .attr("height", this.yBarScale.bandwidth());
-    const barText = this.g
-      .selectAll(".bar-text")
-      .data(fillerCounts)
-      .enter()
-      .append("text")
-      .attr("class", "bar-text")
-      .text((d) => `${d.key}…`)
-      .attr("x", 0)
-      .attr("dx", 15)
-      .attr("y", (d, i) => this.yBarScale(i))
-      .attr("dy", this.yBarScale.bandwidth() / 1.2)
-      .style("font-size", "110px")
-      .attr("fill", "white")
-      .attr("opacity", 0);
+    // const fillerCounts = this.groupByWord(this.fillerWords);
+    // const countMax = d3.max(fillerCounts, (d) => d.value);
+    // this.xBarScale = d3
+    //   .scaleLinear()
+    //   .domain([0, countMax])
+    //   .range([0, this.width]);
+    // this.yBarScale = d3
+    //   .scaleBand()
+    //   .paddingInner(0.08)
+    //   .domain([0, 1, 2])
+    //   .range([0, this.height - 50], 0.1, 0.1);
+    // this.xAxisBar = d3.axisBottom().scale(this.xBarScale);
+    // this.g
+    //   .append("g")
+    //   .attr("class", "x axis")
+    //   .attr("transform", `translate(0, ${this.height - 40})`)
+    //   .call(this.xAxisBar);
+    // this.g.select(".x.axis").style("opacity", 0);
   };
 
   setupHistogram = () => {
-    this.xHistScale = d3
-      .scaleLinear()
-      .domain([0, 30])
-      .range([0, this.width - 20]);
-
-    const histData = this.getHistogram(this.fillerWords);
-
-    this.xAxisHist = d3
-      .axisBottom()
-      .scale(this.xHistScale)
-      .tickFormat((d) => `${d} min`);
-    this.coughColorScale = d3
+    this.colors = {
+      0: "#84bc41", // light green
+      1: "#fcf001", // light yellow
+      2: "#75d1f3", // light blue
+      3: "#ef3f5d", // light-red
+    };
+    this.changeColorScale = d3
       .scaleLinear()
       .domain([0, 1.0])
-      .range(["#75d1f3", "#75d1f3"]);
+      .range(["#84bc41", "#75d1f3"]);
 
+    this.xHistScale = d3
+      .scaleLinear()
+      .domain([1, 13])
+      .range([0, this.width - 20]);
+    this.xAxisHist = d3.axisBottom().scale(this.xHistScale);
+    this.g
+      .append("g")
+      .attr("class", "x axis")
+      .attr("transform", `translate(0, ${this.height - 40})`)
+      .call(this.xHistScale);
+    this.g.select(".x.axis").style("opacity", 0);
+
+    const histData = this.getOtherHist();
+    // const histData = this.getHistogram(this.fillerWords);
     const histMax = d3.max(histData, (d) => d.length);
+
     this.yHistScale = d3
       .scaleLinear()
       .domain([0, histMax])
@@ -283,6 +266,7 @@ export default class ToiletPaper extends React.Component {
         "width",
         this.xHistScale(histData[0].x1) - this.xHistScale(histData[0].x0) - 1
       )
+      .attr("transform", `translate(0, ${-40})`)
       .attr("fill", this.colors[0])
       .attr("opacity", 0);
   };
@@ -308,8 +292,8 @@ export default class ToiletPaper extends React.Component {
     this.measure = document.querySelector("#graphic > .col");
     this.flexContainer = document.querySelector("#graphic");
 
-    this.start = this.measure.offsetTop;
-    this.end = this.start + this.measure.offsetHeight;
+    this.targetStart = this.measure.offsetTop;
+    this.targetEnd = this.targetStart + this.measure.offsetHeight;
     this.rect = this.vis.getBoundingClientRect();
 
     this.virtualElement = document.createElement("div");
@@ -323,39 +307,41 @@ export default class ToiletPaper extends React.Component {
     const curBot = window.innerHeight + curTop;
     const hasStick = this.vis.classList.contains("stick");
 
-    if (curTop >= this.start && curBot <= this.end && !hasStick) {
+    if (curTop >= this.targetStart && curBot <= this.targetEnd && !hasStick) {
       this.vis.classList.add("stick");
       this.vis.style.width = `${parseInt(this.rect.width)}px`;
       this.vis.parentNode.insertBefore(this.virtualElement, this.vis);
 
       this.flexContainer.classList.remove("align-items-end");
       this.flexContainer.classList.add("align-items-start");
-    } else if (curTop <= this.start && hasStick) {
+    } else if (curTop <= this.targetStart && hasStick) {
       this.vis.classList.remove("stick");
       this.vis.style.width = "auto";
       this.vis.parentNode.removeChild(this.virtualElement);
-    } else if (curTop >= 4000 && hasStick) {
+    } else if (curBot >= this.targetEnd && hasStick) {
       this.vis.classList.remove("stick");
       this.vis.style.width = "auto";
       this.vis.parentNode.removeChild(this.virtualElement);
 
-      this.flexContainer.classList.add("align-items-end");
-      this.flexContainer.classList.remove("align-items-start");
+      // this.flexContainer.classList.add("align-items-end");
+      // this.flexContainer.classList.remove("align-items-start");
     }
   };
 
   setupSections = () => {
-    this.activateFunctions[0] = this.showTitle;
-    this.activateFunctions[1] = this.showInventionImg;
-    this.activateFunctions[2] = this.showGrid;
-    this.activateFunctions[3] = this.highlightGrid;
-    this.activateFunctions[4] = this.showBar;
-    this.activateFunctions[5] = this.showHistPart;
-    this.activateFunctions[6] = this.showHistAll;
-    this.activateFunctions[7] = this.showCough;
-    this.activateFunctions[8] = this.showHistAll;
+    this.activateFunctions.push(
+      this.showTitle,
+      this.showInventionImg,
+      this.showSquares,
+      this.expandGrid,
+      this.highlightGrid,
+      this.showHistPart,
+      this.showHistAll,
+      this.showCough,
+      this.showNothing
+    );
 
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < this.activateFunctions.length; i++) {
       this.updateFunctions[i] = function () {};
     }
     this.updateFunctions[7] = this.updateCough;
@@ -424,12 +410,34 @@ export default class ToiletPaper extends React.Component {
    * use d3's histogram layout to generate histogram bins for our word data
    * @param data - post-processed data from getFillerWords()
    */
-  getHistogram = (data) => {
-    const thirtyMins = data.filter((d) => d.min < 30);
-    return d3
+  // getHistogram = (data) => {
+  //   const thirtyMins = data.filter((d) => d.min < 30);
+  //   console.log(this.xHistScale.ticks(10));
+  //   const bin = d3
+  //     .bin()
+  //     .thresholds(this.xHistScale.ticks(10))
+  //     .value((d) => d.min);
+  //   return bin(thirtyMins);
+  // };
+
+  getOtherHist = () => {
+    // create dataset
+    const increasePercentByMonth = [2, 4, 90, 42, 17, 8, 10, 5, 1, 9, 55, 50];
+    const data = [];
+    increasePercentByMonth.forEach((count, idx) => {
+      for (let j = 0; j < count; j++) {
+        data.push({
+          Month: idx + 1,
+        });
+      }
+    });
+
+    // bin the data
+    const bin = d3
       .bin()
-      .thresholds(this.xHistScale.ticks(10))
-      .value((d) => d.min)(thirtyMins);
+      .thresholds(this.xHistScale.ticks())
+      .value((d) => d.Month);
+    return bin(data);
   };
 
   /**
@@ -514,11 +522,11 @@ export default class ToiletPaper extends React.Component {
   };
 
   /**
-   * hides: filler count title
-   * hides: filler highlight in grid
-   * shows: square grid
+   * hides: square grid
+   * hides: histogram
+   * shows: barchart
    */
-  showGrid = () => {
+  showSquares = () => {
     // hide before
     this.g
       .selectAll(".tp-invention-img")
@@ -532,6 +540,53 @@ export default class ToiletPaper extends React.Component {
       .transition()
       .duration(600)
       .delay((d) => 5 * d.row)
+      .attr("x", 0)
+      .attr("y", (d) => d.y)
+      .attr("fill", (d) => this.colorScale(d.Country))
+      .transition()
+      .duration(0)
+      .attr("opacity", 1);
+
+    this.g.selectAll(".legend").transition().duration(600).attr("opacity", 1);
+    this.g
+      .selectAll(".legend-text")
+      .transition()
+      .duration(1000)
+      .attr("opacity", 1);
+
+    this.g
+      .selectAll(".hist")
+      .transition()
+      .duration(600)
+      .attr("height", () => 0)
+      .attr("y", () => this.height)
+      .style("opacity", 0);
+  };
+
+  /**
+   * hides: filler count title
+   * hides: filler highlight in grid
+   * shows: square grid
+   */
+  expandGrid = () => {
+    // hide before
+    this.g
+      .selectAll(".tp-invention-img")
+      .transition()
+      .duration(0)
+      .attr("opacity", 0);
+
+    // hide after
+    this.hideAxis();
+
+    // show cur
+    this.g
+      .selectAll(".square")
+      .transition()
+      .duration(600)
+      .delay((d) => 5 * d.row)
+      .attr("x", (d) => d.x)
+      .attr("y", (d) => d.y)
       .attr("fill", (d) => this.colorScale(d.Country))
       .attr("opacity", 1.0);
 
@@ -552,18 +607,29 @@ export default class ToiletPaper extends React.Component {
   highlightGrid = () => {
     this.hideAxis();
 
-    this.g.selectAll(".bar").transition().duration(600).attr("width", 0);
-    this.g.selectAll(".bar-text").transition().duration(0).attr("opacity", 0);
+    // hide after
+    this.g
+      .selectAll(".hist")
+      .transition()
+      .duration(600)
+      .attr("y", this.height)
+      .attr("height", 0)
+      .style("opacity", 1);
 
-    this.g.selectAll(".square").transition().duration(0).attr("opacity", 1.0);
+    this.g
+      .selectAll(".square")
+      .transition()
+      .attr("x", (d) => d.x)
+      .attr("y", (d) => d.y)
+      .delay((d) => 5 * d.col)
+      .duration(600)
+      .attr("opacity", 1.0);
     this.g.selectAll(".legend").transition().duration(0).attr("opacity", 1);
     this.g
       .selectAll(".legend-text")
       .transition()
       .duration(0)
       .attr("opacity", 1);
-
-    // .attr("fill", "#ddd");
 
     // use named transition to ensure move happens even if other transitions are interrupted.
     this.g
@@ -577,15 +643,19 @@ export default class ToiletPaper extends React.Component {
   };
 
   /**
-   * hides: square grid
-   * hides: histogram
-   * shows: barchart
+   * hides: barchart
+   * hides: last half of histogram
+   * shows: first half of histogram
    */
-  showBar = () => {
-    // ensure bar axis is set
-    this.showAxis(this.xAxisBar);
-
-    this.g.selectAll(".square").transition().duration(0).attr("opacity", 0);
+  showHistPart = () => {
+    // hide before
+    this.g
+      .selectAll(".square")
+      .transition()
+      .duration(600)
+      .delay((d) => 5 * d.col)
+      .attr("y", this.height - 100)
+      .attr("opacity", 0);
     this.g.selectAll(".legend").transition().duration(0).attr("opacity", 0);
     this.g
       .selectAll(".legend-text")
@@ -593,65 +663,17 @@ export default class ToiletPaper extends React.Component {
       .duration(0)
       .attr("opacity", 0);
 
-    this.g
-      .selectAll(".fill-square")
-      .transition()
-      .duration(800)
-      .attr("x", 0)
-      .attr(
-        "y",
-        (d, i) => this.yBarScale(i % 3) + this.yBarScale.bandwidth() / 2
-      )
-      .transition()
-      .duration(0)
-      .attr("opacity", 0);
-
-    this.g
-      .selectAll(".hist")
-      .transition()
-      .duration(600)
-      .attr("height", () => 0)
-      .attr("y", () => this.height)
-      .style("opacity", 0);
-
-    this.g
-      .selectAll(".bar")
-      .transition()
-      .delay((d, i) => 300 * (i + 1))
-      .duration(600)
-      .attr("width", (d) => this.xBarScale(d.value));
-
-    this.g
-      .selectAll(".bar-text")
-      .transition()
-      .duration(600)
-      .delay(1200)
-      .attr("opacity", 1);
-  };
-
-  /**
-   * hides: barchart
-   * hides: last half of histogram
-   * shows: first half of histogram
-   */
-  showHistPart = () => {
-    // switch the axis to histogram one
+    // show current
     this.showAxis(this.xAxisHist);
-
-    this.g.selectAll(".bar-text").transition().duration(0).attr("opacity", 0);
-
-    this.g.selectAll(".bar").transition().duration(600).attr("width", 0);
-
-    // here we only show a bar if it is before the 15 minute mark
     this.g
       .selectAll(".hist")
       .transition()
       .duration(600)
-      .attr("y", (d) => (d.x0 < 15 ? this.yHistScale(d.length) : this.height))
+      .attr("y", (d) => (d.x0 <= 2 ? this.yHistScale(d.length) : this.height))
       .attr("height", (d) =>
-        d.x0 < 15 ? this.height - this.yHistScale(d.length) : 0
+        d.x0 <= 2 ? this.height - this.yHistScale(d.length) : 0
       )
-      .style("opacity", (d) => (d.x0 < 15 ? 1.0 : 1e-6));
+      .style("opacity", (d) => (d.x0 <= 2 ? 1.0 : 1e-6));
   };
 
   /**
@@ -664,22 +686,13 @@ export default class ToiletPaper extends React.Component {
   showHistAll = () => {
     // ensure the axis to histogram one
     this.showAxis(this.xAxisHist);
-
-    this.g.selectAll(".cough").transition().duration(0).attr("opacity", 0);
-
-    // named transition to ensure color change is not clobbered
-    this.g
-      .selectAll(".hist")
-      .transition("color")
-      .duration(500)
-      .style("fill", "#008080");
-
     this.g
       .selectAll(".hist")
       .transition()
       .duration(1200)
       .attr("y", (d) => this.yHistScale(d.length))
       .attr("height", (d) => this.height - this.yHistScale(d.length))
+      .attr("fill", (d) => (d.x0 <= 2 ? this.colors[0] : this.colors[3]))
       .style("opacity", 1.0);
   };
 
@@ -690,16 +703,20 @@ export default class ToiletPaper extends React.Component {
    * shows: histogram
    */
   showCough = () => {
-    // ensure the axis to histogram one
-    this.showAxis(this.xAxisHist);
+    // hide before
+    // this.g
+    //   .selectAll(".hist")
+    //   .transition()
+    //   .duration(600)
+    //   .attr("y", this.height)
+    //   .attr("height", 0)
+    //   .style("opacity", 0);
+    this.hideAxis();
+    this.g.selectAll(".hist").transition().duration(300).style("opacity", 0);
+  };
 
-    this.g
-      .selectAll(".hist")
-      .transition()
-      .duration(600)
-      .attr("y", (d) => this.yHistScale(d.length))
-      .attr("height", (d) => this.height - this.yHistScale(d.length))
-      .style("opacity", 1.0);
+  showNothing = () => {
+    this.hideAxis();
   };
 
   /**
@@ -741,19 +758,18 @@ export default class ToiletPaper extends React.Component {
    *  how far user has scrolled in section
    */
   updateCough = (progress) => {
-    this.g
-      .selectAll(".cough")
-      .transition()
-      .duration(0)
-      .attr("opacity", progress);
-
-    this.g
-      .selectAll(".hist")
-      .transition("cough")
-      .duration(0)
-      .style("fill", (d) => {
-        return d.x0 >= 14 ? this.coughColorScale(progress) : "#008080";
-      });
+    // this.g
+    //   .selectAll(".cough")
+    //   .transition()
+    //   .duration(0)
+    //   .attr("opacity", progress);
+    // this.g
+    //   .selectAll(".hist")
+    //   .transition("cough")
+    //   .duration(0)
+    //   .style("fill", (d) => {
+    //     return d.x0 >= 14 ? this.coughColorScale(progress) : "#008080";
+    //   });
   };
 
   //#endregion activate func
@@ -792,19 +808,18 @@ export default class ToiletPaper extends React.Component {
                 world.
               </section>
               <section className="step">
+                <div className="title">The Rank</div>
+                the US is taking a lead on toilet paper consumption with 91
+                rolls per capita.
+              </section>
+              <section className="step">
                 <div className="title">The World</div>
                 If each square is one roll of toilet paper, this is the top 10
                 country rank on toile paper consumption.
               </section>
               <section className="step">
-                <div className="title">The US</div>
-                the US is taking a lead on toilet paper consumption with 91
-                rolls per capita.
-              </section>
-              <section className="step">
-                <div className="title">Length</div>I almost exclusively used
-                these three fillers. Um's and Ah's made up over 80%, with Uh's
-                trailing behind.
+                <div className="title">The US VS The World</div>The proportion
+                between US and the rest of the top 10 countries
               </section>
 
               <section className="step">
@@ -817,28 +832,18 @@ export default class ToiletPaper extends React.Component {
                 suggests that fewer fillers are used as I get into it. Perhaps
                 the talk started out rough and improved as I found my groove.
               </section>
-              <section className="step">
+              {/* <section className="step">
                 <div className="title">How Much Toilet Paper Do You Need?</div>
                 Unfortunately, the trend does not continue. Midway into the talk
                 my Um's and Ah's spike. I continue to use them pretty
                 consistently throughout the rest of the talk.
-              </section>
-              <section className="step">
-                <div className="title">The Psychology Behind Panic Buying</div>
-                &middot; Guilt Avoidance: We buy too much because we don't want
-                to be the one that doesn't have what they need.
-                <br />
-                <br />
-                &middot; Social Ques: Somebody else is buying a lot and it makes
-                them feel like they should do it, too.
-                <br />
-                <br />
-                &middot; Anxiety: They can't solve the virus, so this is
-                something they can do. They can control their shopping.
-              </section>
+              </section> */}
             </div>
           </div>
-          <div className="col d-flex align-items-center">
+          <div
+            className="col d-flex align-items-center"
+            style={{ marginTop: 150, marginLeft: 15, marginRight: 15 }}
+          >
             <div id="vis" style={{ height: window.innerHeight }}></div>
           </div>
         </div>

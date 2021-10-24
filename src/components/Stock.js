@@ -13,7 +13,7 @@ export default class Stock extends React.Component {
     this.margin = { top: 30, right: 0, bottom: 30, left: 0 };
     this.width = window.innerWidth;
     this.height = 680;
-    console.log(this.width);
+
     this.innerWidth = this.width - this.margin.left - this.margin.right;
     this.innerHeight = this.height - this.margin.top - this.margin.bottom;
 
@@ -119,7 +119,10 @@ export default class Stock extends React.Component {
       .domain([new Date(2020, 0, 1), new Date(2020, 12, 1)])
       .range([0, this.innerWidth])
       .nice();
-    const yScale = d3.scaleLinear().domain([0, 4000]).range([0, 300]);
+    const yScale = d3
+      .scaleLinear()
+      .domain([0, 4000])
+      .range([0, this.height / 3]);
     const colorScale = d3.scaleOrdinal().domain(this.companyList).range([
       // "#ab2668", // purple
       // "#ef3f5d", // light-red
@@ -178,7 +181,7 @@ export default class Stock extends React.Component {
     const xAisG = g
       .append("g")
       .attr("class", "xAxis")
-      .attr("transform", `translate(0, ${this.innerHeight - 100})`)
+      .attr("transform", `translate(0, ${this.innerHeight - 250})`)
       .call(xAxis);
     xAisG.select(".domain").remove();
 
@@ -246,7 +249,7 @@ export default class Stock extends React.Component {
         }}
       >
         <div className="row">
-          <div className="col-3">
+          <div className="col-5">
             <h1>Stock</h1>
             <p className="text-justify">
               The COVID-19 pandemic and resulting economic crisis had an impact
