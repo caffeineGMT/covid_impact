@@ -1,4 +1,4 @@
-/* General */
+/* Overall */
 html, body{
   background-color: #161c26;
   font-family: Arial, Helvetica, sans-serif;
@@ -14,6 +14,10 @@ html, body{
   padding-right: 100px;
 }
 
+span {
+  color:#ff6666;
+}
+
 /* Home */
 #home {
   margin-top: 0;
@@ -25,11 +29,12 @@ html, body{
 }
 
 #home p {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
 }
 
 #home h3 {
+  color: #ff6666;
   font-size: 30px;
   font-weight: bold;
 }
@@ -107,6 +112,10 @@ html, body{
 
 #animal h1 {
   font-size: 4em;
+}
+
+#animal h4 {
+  color: #ff6666
 }
 
 #animal .line-path {

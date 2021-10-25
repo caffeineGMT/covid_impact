@@ -689,7 +689,7 @@ export default class ToiletPaper extends React.Component {
     this.g
       .selectAll(".hist")
       .transition()
-      .duration(1200)
+      .duration(800)
       .attr("y", (d) => this.yHistScale(d.length))
       .attr("height", (d) => this.height - this.yHistScale(d.length))
       .attr("fill", (d) => (d.x0 <= 2 ? this.colors[0] : this.colors[3]))
@@ -782,9 +782,11 @@ export default class ToiletPaper extends React.Component {
             <div id="sections">
               <section className="step">
                 <div className="title">Issues With Tissues</div>
-                The COVID-19 pandemic has been associated with a worldwide
-                increase in toilet paper hoarding. Why do people hoard toilet
-                paper?
+                At the beginning of the pandemic in the U.S., brief shortages of
+                food, disinfectants and toiletries swept through the country.
+                Americans were quick to stock up on essentials like Lysol,
+                toilet paper and paper towels, and this wave of purchases caused
+                a shortfall that’s lasted for months.
               </section>
               <section className="step">
                 <div className="title">Invention</div>
@@ -794,43 +796,44 @@ export default class ToiletPaper extends React.Component {
                 <br />
                 In the 15th Century, paper became easier to produce, but the
                 19th Century is where it boomed thanks to mass production. A man
-                by the name of Joseph C. Gayetty created the first ever
-                commercial toilet paper - which were not in rolls, but arrived
-                as flat sheets sold in bulk Ever since the mass
+                by the name of <span>Joseph C. Gayetty</span> created the first
+                ever commercial toilet paper - which were not in rolls, but
+                arrived as flat sheets sold in bulk Ever since the mass
                 commercialisation of toilet paper, new advances came into play
-                such as Walter Alcocks paper, which was perforated.
+                such as <span>Walter Alcocks</span> paper, which was perforated.
                 <br />
                 <br />
-                In other parts of the world, St. Andrew's Paper Mill in the UK
-                developed the first 2 ply toilet paper Toilet paper has been
-                developing ever since - until the 21st century, where finally
-                people it became a limited necessity due to hoarding across the
-                world.
+                In other parts of the world, <span>St. Andrew's</span> Paper
+                Mill in the UK developed the first 2 ply toilet paper Toilet
+                paper has been developing ever since - until the 21st century,
+                where finally people it became a limited necessity due to
+                hoarding across the world.
               </section>
               <section className="step">
                 <div className="title">The Rank</div>
-                the US is taking a lead on toilet paper consumption with 91
-                rolls per capita.
+                If we look at the country rank on toilet paper consumption, the
+                US is taking a lead.
               </section>
               <section className="step">
                 <div className="title">The World</div>
                 If each square is one roll of toilet paper, this is the top 10
-                country rank on toile paper consumption.
+                country rank on toilet paper consumption per capita. And the
+                Americans consume 91 rolls per person per year.
               </section>
               <section className="step">
                 <div className="title">The US VS The World</div>The proportion
-                between US and the rest of the top 10 countries
+                between US and the rest of the top 10 countries.
               </section>
 
               <section className="step">
                 <div className="title">Pre-COVID</div>
-                And here are all the fillers I used in those 30 minutes.
+                Before COVID-19, this is how much more toilet paper we consume
+                in percentage compare to the same month in 2019.
               </section>
               <section className="step">
-                <div className="title">Panic Mode</div>I hoped that all these
-                blunders were toward the beginning of my talk. And the data
-                suggests that fewer fillers are used as I get into it. Perhaps
-                the talk started out rough and improved as I found my groove.
+                <div className="title">Panic Mode</div>
+                When COVID-10 kicked in, the consumption of toilet paper
+                dramatically increased.
               </section>
               {/* <section className="step">
                 <div className="title">How Much Toilet Paper Do You Need?</div>

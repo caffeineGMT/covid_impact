@@ -52,12 +52,6 @@ export default class VerticalNav extends React.Component {
             </a>
           </li>
           <li>
-            <a href="#traffic">
-              <span className="cd-dot"></span>
-              <span className="cd-label">Traffic</span>
-            </a>
-          </li>
-          <li>
             <a href="#reflection">
               <span className="cd-dot"></span>
               <span className="cd-label">Reflection</span>

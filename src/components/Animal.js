@@ -251,16 +251,6 @@ export default class Animal extends React.Component {
               so that it created an illusion that more pets were adopted?
               <br />
               <br />
-              During the pandemic burst in 2020, we see more and more pets being
-              adopted. One would find it was very hard to adopt a pet from a
-              shelter. Was it truly having more adoptions? or was it just
-              because the available pets were adopted a lot faster than before
-              so that it created an illusion that more pets were adopted? During
-              the pandemic burst in 2020, we see more and more pets being
-              adopted. One would find it was very hard to adopt a pet from a
-              shelter. Was it truly having more adoptions? or was it just
-              because the available pets were adopted a lot faster than before
-              so that it created an illusion that more pets were adopted?
             </p>
             <br />
             <br />

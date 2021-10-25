@@ -64,6 +64,7 @@ export default class Stock extends React.Component {
       let rawData = await d3.csv(this.dataPath[i]);
       rawData = rawData.map((d) => {
         let priceStr = d["Close/Last"];
+        console.log(priceStr);
         let priceTokens = priceStr.split("$");
         let priceNum = +priceTokens[1];
         let nameTokens = this.dataPath[i].split("/");
@@ -252,10 +253,14 @@ export default class Stock extends React.Component {
           <div className="col-5">
             <h1>Stock</h1>
             <p className="text-justify">
-              The COVID-19 pandemic and resulting economic crisis had an impact
-              on almost every aspect of our life, including toilet paper, stock,
-              gas, how we work, how we live and among many others. Is it all bad
-              effects?
+              February 19, 2020, marked the stock market peak before the
+              outbreak of the COVID-19 pandemic triggered a freefall in share
+              prices. In the year since, the world has changed, transforming our
+              lives, our economies, and the fortunes of our businesses—an
+              unfolding journey that is reflected in the ups and downs of share
+              prices. The fundamental trends have accelerated, propelling some
+              companies forward at record speed while for others headwinds have
+              turned into hurricanes.
             </p>
           </div>
         </div>
